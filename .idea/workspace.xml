@@ -2,7 +2,8 @@
 <project version="4">
   <component name="CMakeRunConfigurationManager" shouldGenerate="true" shouldDeleteObsolete="true">
     <generated>
-      <config projectName="Project" targetName="gmlib_v2" />
+      <config projectName="TMaP" targetName="gmlib_v2" />
+      <config projectName="TMaP" targetName="pygmlib" />
     </generated>
   </component>
   <component name="CMakeSettings" AUTO_RELOAD="true">
@@ -11,7 +12,9 @@
     </configurations>
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="5eb8b5c9-221e-45ef-8b8c-610ebdcc0722" name="Default Changelist" comment="Init" />
+    <list default="true" id="5eb8b5c9-221e-45ef-8b8c-610ebdcc0722" name="Default Changelist" comment="Init">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -305,7 +308,7 @@
       <workItem from="1594253501328" duration="7665000" />
       <workItem from="1594320067305" duration="22553000" />
       <workItem from="1594751996089" duration="29000" />
-      <workItem from="1594752248457" duration="3045000" />
+      <workItem from="1594752248457" duration="3678000" />
     </task>
     <task id="LOCAL-00001" summary="Init">
       <created>1587485759076</created>
@@ -355,22 +358,22 @@
       <screen x="67" y="27" width="1853" height="1053" />
     </state>
     <state x="726" y="301" width="524" height="503" key="#com.intellij.refactoring.safeDelete.UnsafeUsagesDialog/67.27.1853.1053@67.27.1853.1053" timestamp="1594730656120" />
-    <state x="545" y="147" width="887" height="810" key="CommitChangelistDialog2" timestamp="1594755294698">
+    <state x="545" y="147" width="887" height="810" key="CommitChangelistDialog2" timestamp="1594755558700">
       <screen x="67" y="27" width="1853" height="1053" />
     </state>
-    <state x="545" y="147" width="887" height="810" key="CommitChangelistDialog2/67.27.1853.1053@67.27.1853.1053" timestamp="1594755294698" />
+    <state x="545" y="147" width="887" height="810" key="CommitChangelistDialog2/67.27.1853.1053@67.27.1853.1053" timestamp="1594755558700" />
     <state x="771" y="310" width="471" height="484" key="FileChooserDialogImpl" timestamp="1594755024918">
       <screen x="67" y="27" width="1853" height="1053" />
     </state>
     <state x="771" y="310" width="471" height="484" key="FileChooserDialogImpl/67.27.1853.1053@67.27.1853.1053" timestamp="1594755024918" />
-    <state x="842" y="446" width="302" height="275" key="Github.ShareDialog" timestamp="1594755401494">
+    <state x="842" y="446" width="302" height="275" key="Github.ShareDialog" timestamp="1594755619760">
       <screen x="67" y="27" width="1853" height="1053" />
     </state>
-    <state x="842" y="446" width="302" height="275" key="Github.ShareDialog/67.27.1853.1053@67.27.1853.1053" timestamp="1594755401494" />
-    <state x="687" y="258" width="602" height="589" key="Github.UntrackedFilesDialog" timestamp="1594755049791">
+    <state x="842" y="446" width="302" height="275" key="Github.ShareDialog/67.27.1853.1053@67.27.1853.1053" timestamp="1594755619760" />
+    <state x="687" y="258" width="602" height="589" key="Github.UntrackedFilesDialog" timestamp="1594755635013">
       <screen x="67" y="27" width="1853" height="1053" />
     </state>
-    <state x="687" y="258" width="602" height="589" key="Github.UntrackedFilesDialog/67.27.1853.1053@67.27.1853.1053" timestamp="1594755049791" />
+    <state x="687" y="258" width="602" height="589" key="Github.UntrackedFilesDialog/67.27.1853.1053@67.27.1853.1053" timestamp="1594755635013" />
     <state x="750" y="277" width="477" height="551" key="RollbackChangesDialog" timestamp="1594754107354">
       <screen x="67" y="27" width="1853" height="1053" />
     </state>
