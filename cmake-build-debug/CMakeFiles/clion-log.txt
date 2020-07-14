@@ -1,0 +1,35 @@
+/home/vasundhara/Downloads/CLion-2019.2.4/clion-2019.2.4/bin/cmake/linux/bin/cmake -DCMAKE_BUILD_TYPE=Debug -G "CodeBlocks - Unix Makefiles" /home/vasundhara/UTD/Research/TMaP
+-- The C compiler identification is GNU 7.5.0
+-- The CXX compiler identification is GNU 7.5.0
+-- Check for working C compiler: /usr/bin/cc
+-- Check for working C compiler: /usr/bin/cc -- works
+-- Detecting C compiler ABI info
+-- Detecting C compiler ABI info - done
+-- Detecting C compile features
+-- Detecting C compile features - done
+-- Check for working CXX compiler: /usr/bin/c++
+-- Check for working CXX compiler: /usr/bin/c++ -- works
+-- Detecting CXX compiler ABI info
+-- Detecting CXX compiler ABI info - done
+-- Detecting CXX compile features
+-- Detecting CXX compile features - done
+-- Found Python3: /usr/bin/python3.6 (found version "3.6.9") found components:  Interpreter Development 
+-- Found Boost: /usr/lib/cmake/Boost-1.71.0/BoostConfig.cmake (found suitable version "1.71.0", minimum required is "1.71.0") found components:  python36 numpy36 
+-- Found PythonInterp: /usr/bin/python3 (found suitable version "3.6.9", minimum required is "3") 
+-- Found PythonLibs: /usr/lib/x86_64-linux-gnu/libpython3.6m.so (found suitable version "3.6.9", minimum required is "3") 
+-- PYTHON_LIBRARIES = /usr/lib/x86_64-linux-gnu/libpython3.6m.so
+-- PYTHON_EXECUTABLE = /usr/bin/python3.6
+-- PYTHON_INCLUDE_DIRS = /usr/include/python3.6m
+-- Boost_LIBRARIES = Boost::python;Boost::numpy
+-- Boost_INCLUDE_DIRS = /usr/include
+-- Python_Interpreter = 3.6.9
+-- Found PythonInterp: /usr/bin/python3 (found version "3.6.9") 
+-- Found PythonLibs: /usr/lib/x86_64-linux-gnu/libpython3.6m.so
+-- pybind11 v2.2.3
+-- Performing Test HAS_FLTO
+-- Performing Test HAS_FLTO - Success
+-- LTO enabled
+-O3 -DNDEBUG
+-- Configuring done
+-- Generating done
+-- Build files have been written to: /home/vasundhara/UTD/Research/TMaP/cmake-build-debug
