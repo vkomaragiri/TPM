@@ -12,7 +12,9 @@
     </configurations>
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="5eb8b5c9-221e-45ef-8b8c-610ebdcc0722" name="Default Changelist" comment="Init" />
+    <list default="true" id="5eb8b5c9-221e-45ef-8b8c-610ebdcc0722" name="Default Changelist" comment="Init">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -58,7 +60,7 @@
     <property name="node.js.path.for.package.tslint" value="project" />
     <property name="node.js.selected.package.eslint" value="(autodetect)" />
     <property name="node.js.selected.package.tslint" value="(autodetect)" />
-    <property name="settings.editor.selected.configurable" value="project.propVCSSupport.Mappings" />
+    <property name="settings.editor.selected.configurable" value="settings.github" />
   </component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
@@ -328,7 +330,7 @@
       <workItem from="1597337237035" duration="599000" />
       <workItem from="1597393196803" duration="8371000" />
       <workItem from="1597427815464" duration="4796000" />
-      <workItem from="1597533673368" duration="2350000" />
+      <workItem from="1597533673368" duration="3118000" />
     </task>
     <task id="LOCAL-00001" summary="Init">
       <created>1587485759076</created>
@@ -379,7 +381,21 @@
       <option name="project" value="LOCAL" />
       <updated>1594756167388</updated>
     </task>
-    <option name="localTasksCounter" value="8" />
+    <task id="LOCAL-00008" summary="Init">
+      <created>1597536113707</created>
+      <option name="number" value="00008" />
+      <option name="presentableId" value="LOCAL-00008" />
+      <option name="project" value="LOCAL" />
+      <updated>1597536113707</updated>
+    </task>
+    <task id="LOCAL-00009" summary="Init">
+      <created>1597536189022</created>
+      <option name="number" value="00009" />
+      <option name="presentableId" value="LOCAL-00009" />
+      <option name="project" value="LOCAL" />
+      <updated>1597536189022</updated>
+    </task>
+    <option name="localTasksCounter" value="10" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -401,6 +417,7 @@
   <component name="VcsManagerConfiguration">
     <ignored-roots>
       <path value="$PROJECT_DIR$/cmake-build-debug/_deps/pybind11-src" />
+      <path value="$PROJECT_DIR$" />
     </ignored-roots>
     <MESSAGE value="Init" />
     <option name="LAST_COMMIT_MESSAGE" value="Init" />
@@ -418,18 +435,18 @@
       <screen x="67" y="27" width="1853" height="1053" />
     </state>
     <state x="726" y="301" width="524" height="503" key="#com.intellij.refactoring.safeDelete.UnsafeUsagesDialog/67.27.1853.1053@67.27.1853.1053" timestamp="1594730656120" />
-    <state x="545" y="147" width="887" height="810" key="CommitChangelistDialog2" timestamp="1597536112827">
+    <state x="545" y="147" width="887" height="810" key="CommitChangelistDialog2" timestamp="1597536606018">
       <screen x="67" y="27" width="1853" height="1053" />
     </state>
-    <state x="545" y="147" width="887" height="810" key="CommitChangelistDialog2/67.27.1853.1053@67.27.1853.1053" timestamp="1597536112827" />
-    <state x="771" y="310" width="471" height="484" key="FileChooserDialogImpl" timestamp="1597536159577">
+    <state x="545" y="147" width="887" height="810" key="CommitChangelistDialog2/67.27.1853.1053@67.27.1853.1053" timestamp="1597536606018" />
+    <state x="771" y="310" width="471" height="484" key="FileChooserDialogImpl" timestamp="1597536563157">
       <screen x="67" y="27" width="1853" height="1053" />
     </state>
-    <state x="771" y="310" width="471" height="484" key="FileChooserDialogImpl/67.27.1853.1053@67.27.1853.1053" timestamp="1597536159577" />
-    <state x="842" y="446" width="302" height="275" key="Github.ShareDialog" timestamp="1597534807679">
+    <state x="771" y="310" width="471" height="484" key="FileChooserDialogImpl/67.27.1853.1053@67.27.1853.1053" timestamp="1597536563157" />
+    <state x="842" y="446" width="302" height="275" key="Github.ShareDialog" timestamp="1597536688882">
       <screen x="67" y="27" width="1853" height="1053" />
     </state>
-    <state x="842" y="446" width="302" height="275" key="Github.ShareDialog/67.27.1853.1053@67.27.1853.1053" timestamp="1597534807679" />
+    <state x="842" y="446" width="302" height="275" key="Github.ShareDialog/67.27.1853.1053@67.27.1853.1053" timestamp="1597536688882" />
     <state x="687" y="258" width="602" height="589" key="Github.UntrackedFilesDialog" timestamp="1594755635013">
       <screen x="67" y="27" width="1853" height="1053" />
     </state>
@@ -438,18 +455,18 @@
       <screen x="67" y="27" width="1853" height="1053" />
     </state>
     <state x="750" y="277" width="477" height="551" key="RollbackChangesDialog/67.27.1853.1053@67.27.1853.1053" timestamp="1594754107354" />
-    <state x="475" y="187" key="SettingsEditor" timestamp="1597536028611">
+    <state x="475" y="187" key="SettingsEditor" timestamp="1597536676596">
       <screen x="67" y="27" width="1853" height="1053" />
     </state>
-    <state x="475" y="187" key="SettingsEditor/67.27.1853.1053@67.27.1853.1053" timestamp="1597536028611" />
+    <state x="475" y="187" key="SettingsEditor/67.27.1853.1053@67.27.1853.1053" timestamp="1597536676596" />
     <state x="658" y="257" width="649" height="591" key="VCS.ChangeListViewerDialog" timestamp="1594753500351">
       <screen x="67" y="27" width="1853" height="1053" />
     </state>
     <state x="658" y="257" width="649" height="591" key="VCS.ChangeListViewerDialog/67.27.1853.1053@67.27.1853.1053" timestamp="1594753500351" />
-    <state x="588" y="288" width="800" height="528" key="Vcs.Push.Dialog.v2" timestamp="1594756145610">
+    <state x="588" y="288" width="800" height="528" key="Vcs.Push.Dialog.v2" timestamp="1597536780504">
       <screen x="67" y="27" width="1853" height="1053" />
     </state>
-    <state x="588" y="288" width="800" height="528" key="Vcs.Push.Dialog.v2/67.27.1853.1053@67.27.1853.1053" timestamp="1594756145610" />
+    <state x="588" y="288" width="800" height="528" key="Vcs.Push.Dialog.v2/67.27.1853.1053@67.27.1853.1053" timestamp="1597536780504" />
     <state x="167" y="125" width="1653" height="855" key="com.intellij.history.integration.ui.views.DirectoryHistoryDialog" timestamp="1594755099811">
       <screen x="67" y="27" width="1853" height="1053" />
     </state>
