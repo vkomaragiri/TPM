@@ -60,6 +60,9 @@ public:
     }
 
     ldouble getPE(){
+        if(!posterior){
+            initPosterior();
+        }
         return mtBtp.getPE();
     }
 
@@ -97,6 +100,61 @@ public:
         }
         return py::array(sampleWeights.size(), sampleWeights.data());
     }
+
+    py::array generateSamplesDenWeight(int n){
+        sampleWeights = vector<ldouble> (n);
+        for(int i = 0; i < n; i++){
+            sampleWeights[i] = getProbability(samples[i]);
+        }
+        return py::array(n, sampleWeights.data());
+    }
+};
+
+
+class BN_UAI_PY_Interface{
+    CLT clt;
+    BN_Sampler bns;
+
+public:
+    vector<vector<int>> samples;
+    vector<ldouble> sampleWeights;
+    BN_UAI_PY_Interface() = default;
+
+    void read(string infile){
+        clt = CLT();
+        clt.readUAI08(infile);
+    }
+
+    ldouble getLogLikelihood(string filename){
+        Data dt = Data();
+        dt.readCSVData(filename);
+        return clt.log_likelihood(dt);
+    }
+
+    py::array generateSamples(int n){
+        bns = BN_Sampler(clt);
+        samples.clear();
+        bns.generateSamples(n, samples);
+        size_t N = samples.size();
+        size_t M = samples[0].size();
+        py::array_t<int, py::array::c_style> ret({N, M});
+        auto ra = ret.mutable_unchecked();
+
+        for(size_t i = 0; i < N; i++){
+            for(size_t j = 0; j < M; j++){
+                ra(i, j) = samples[i][j];
+            }
+        }
+        return ret;
+    }
+
+    ldouble getProbability(vector<int> &s){
+        return clt.getProbability(s);
+    }
+
+    void writeSamples(string outfile) {
+        Utils::printSamples(samples, outfile);
+    }
 };
 
 PYBIND11_MODULE(pygmlib, m) {
@@ -113,6 +171,16 @@ PYBIND11_MODULE(pygmlib, m) {
             .def("getPE", &MT_PY_Interface::getPE, "Returns answer to the probability of evidence query.")
             .def("generateSamples", &MT_PY_Interface::generateSamples, "Returns the generated samples in numpy array format.")
             .def("getProbability", &MT_PY_Interface::getProbability, "Returns probability of an assignment")
-            .def("generateSampleWeights", &MT_PY_Interface::generateSamplesDenWeight, "Returns the importance sampling denominator for the generated samples");
+            .def("generateSampleWeights", (py::array (MT_PY_Interface::*)()) &MT_PY_Interface::generateSamplesDenWeight, "Returns the importance sampling denominator for the generated samples")
+            .def("generateSampleWeights", (py::array (MT_PY_Interface::*)(int)) &MT_PY_Interface::generateSamplesDenWeight, "Returns the importance sampling denominator for the generated samples")
+            ;
 
+    py::class_<BN_UAI_PY_Interface>(m, "BN_UAI")
+            .def(py::init<>(), "Constructor")
+            .def("read", &BN_UAI_PY_Interface::read, "Reads the BN from a UAI format file")
+            .def("log_likelihood", &BN_UAI_PY_Interface::getLogLikelihood, "Returns the log likelihood of the model")
+            .def("generateSamples", &BN_UAI_PY_Interface::generateSamples, "Generates samples using the BN in the .uai format")
+            .def("getProbability", &BN_UAI_PY_Interface::getProbability, "Returns probability of an assignment")
+            .def("writeSamples", &BN_UAI_PY_Interface::writeSamples, "Writes samples generated in generateSamples to outfile")
+            ;
 }

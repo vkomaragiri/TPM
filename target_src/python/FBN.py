@@ -205,15 +205,17 @@ def getAddr(arr, dsize):
     return ind
 
 def main():
-    if len(sys.argv) < 5:
-        print("Usage:\npython FBN.py <Train Data Path> <Validation Data Path> <Test Data Path> <Model Path>")
+    if len(sys.argv) < 6:
+        print("Usage:\npython FBN.py <Train Data Path> <Validation Data Path> <Test Data Path> <Model Path> <Test LL File Path>")
         exit(0)
     train_data = readCSVData(sys.argv[1])
     valid_data = readCSVData(sys.argv[2])
     test_data = readCSVData(sys.argv[3])
     bn = FBN()
     bn.learn(train_data, valid_data)
-    print(bn.log_likelihood(test_data))
+
+    f = open(sys.argv[5], "a")
+    f.write(sys.argv[1].split('.')[0]+" "+str(bn.log_likelihood(test_data))+"\n")
     filehandler = open(sys.argv[4], 'wb')
     pickle.dump(bn, filehandler)
     '''

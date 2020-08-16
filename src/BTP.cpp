@@ -153,6 +153,7 @@ void BTP::downward_pass(){ //root to leaves
     }
 }
 
+
 void BTP::getPosteriorSampler(BN_Sampler &bns) {
     propagate();
     bns = BN_Sampler();

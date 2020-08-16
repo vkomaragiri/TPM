@@ -71,4 +71,3 @@ ldouble BN_Sampler::getWeight(vector<int> &sample) {
 }
 
 
-

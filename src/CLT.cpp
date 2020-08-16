@@ -61,6 +61,17 @@ struct Spanning_Tree {
     }
 };
 
+void CLT::setEvidence(int var, int val)
+{
+    variables[var]->setValue(val);
+}
+
+void CLT::removeEvidence(int var)
+{
+    variables[var]->val = -1;
+    variables[var]->is_evid = 0;
+}
+
 void CLT::learn(Data &data, vector<ldouble> &weights_, bool isComp, bool doStructLearning, int r){
     data.setWeights(weights_);
     if(!isComp) {
@@ -201,6 +212,7 @@ void CLT::readUAI08(string infile) {
         cerr << "Something wrong with the file, cannot read\n";
         exit(-1);
     }
+
     int numvars;
     in >> numvars;
     variables = vector<Variable *>(numvars);

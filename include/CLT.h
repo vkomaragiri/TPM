@@ -24,6 +24,9 @@ public:
     void print();
     void write(string infile);
     void readUAI08(string infile);
+
+    void setEvidence(int var, int val);
+    void removeEvidence(int var);
 };
 
 

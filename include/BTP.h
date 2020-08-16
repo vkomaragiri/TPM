@@ -27,8 +27,8 @@ struct Message{
 
 class BTP: public MarginalInferenceEngine, PosteriorSamplerCreator<BN_Sampler>{//, PosteriorDistCreator<CLT> {
     vector<Variable*> variables;
-    vector<vector<Function>> buckets;
-    vector<int> order;
+
+
     vector<int> var_pos;
     vector<Message> edges;
     ldouble pe;
@@ -36,6 +36,9 @@ class BTP: public MarginalInferenceEngine, PosteriorSamplerCreator<BN_Sampler>{/
     bool upward_performed;
 
 public:
+    vector<int> order;
+    vector<vector<Function>> buckets;
+
     BTP():pe(1.0), downward_performed(false), upward_performed(false){}
     BTP(CLT &clt);
 
