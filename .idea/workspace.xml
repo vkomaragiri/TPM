@@ -34,6 +34,15 @@
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
+  <component name="GithubPullRequestsUISettings">
+    <option name="hiddenUrls">
+      <set>
+        <option value="https://github.com/vkomaragiri/TMaP.git" />
+        <option value="https://github.com/vkomaragiri/TractableModelsAsProposals.git" />
+        <option value="https://github.com/wjakob/clang-cindex-python3" />
+      </set>
+    </option>
+  </component>
   <component name="IgnoredFileRootStore">
     <option name="generatedRoots">
       <set>
@@ -60,7 +69,7 @@
     <property name="node.js.path.for.package.tslint" value="project" />
     <property name="node.js.selected.package.eslint" value="(autodetect)" />
     <property name="node.js.selected.package.tslint" value="(autodetect)" />
-    <property name="settings.editor.selected.configurable" value="settings.github" />
+    <property name="settings.editor.selected.configurable" value="vcs.Git" />
   </component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
@@ -330,7 +339,7 @@
       <workItem from="1597337237035" duration="599000" />
       <workItem from="1597393196803" duration="8371000" />
       <workItem from="1597427815464" duration="4796000" />
-      <workItem from="1597533673368" duration="3118000" />
+      <workItem from="1597533673368" duration="5785000" />
     </task>
     <task id="LOCAL-00001" summary="Init">
       <created>1587485759076</created>
@@ -395,7 +404,14 @@
       <option name="project" value="LOCAL" />
       <updated>1597536189022</updated>
     </task>
-    <option name="localTasksCounter" value="10" />
+    <task id="LOCAL-00010" summary="Init">
+      <created>1597536828688</created>
+      <option name="number" value="00010" />
+      <option name="presentableId" value="LOCAL-00010" />
+      <option name="project" value="LOCAL" />
+      <updated>1597536828688</updated>
+    </task>
+    <option name="localTasksCounter" value="11" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -435,10 +451,10 @@
       <screen x="67" y="27" width="1853" height="1053" />
     </state>
     <state x="726" y="301" width="524" height="503" key="#com.intellij.refactoring.safeDelete.UnsafeUsagesDialog/67.27.1853.1053@67.27.1853.1053" timestamp="1594730656120" />
-    <state x="545" y="147" width="887" height="810" key="CommitChangelistDialog2" timestamp="1597536606018">
+    <state x="545" y="147" width="887" height="810" key="CommitChangelistDialog2" timestamp="1597539151952">
       <screen x="67" y="27" width="1853" height="1053" />
     </state>
-    <state x="545" y="147" width="887" height="810" key="CommitChangelistDialog2/67.27.1853.1053@67.27.1853.1053" timestamp="1597536606018" />
+    <state x="545" y="147" width="887" height="810" key="CommitChangelistDialog2/67.27.1853.1053@67.27.1853.1053" timestamp="1597539151952" />
     <state x="771" y="310" width="471" height="484" key="FileChooserDialogImpl" timestamp="1597536563157">
       <screen x="67" y="27" width="1853" height="1053" />
     </state>
@@ -455,18 +471,18 @@
       <screen x="67" y="27" width="1853" height="1053" />
     </state>
     <state x="750" y="277" width="477" height="551" key="RollbackChangesDialog/67.27.1853.1053@67.27.1853.1053" timestamp="1594754107354" />
-    <state x="475" y="187" key="SettingsEditor" timestamp="1597536676596">
+    <state x="475" y="187" key="SettingsEditor" timestamp="1597538915753">
       <screen x="67" y="27" width="1853" height="1053" />
     </state>
-    <state x="475" y="187" key="SettingsEditor/67.27.1853.1053@67.27.1853.1053" timestamp="1597536676596" />
+    <state x="475" y="187" key="SettingsEditor/67.27.1853.1053@67.27.1853.1053" timestamp="1597538915753" />
     <state x="658" y="257" width="649" height="591" key="VCS.ChangeListViewerDialog" timestamp="1594753500351">
       <screen x="67" y="27" width="1853" height="1053" />
     </state>
     <state x="658" y="257" width="649" height="591" key="VCS.ChangeListViewerDialog/67.27.1853.1053@67.27.1853.1053" timestamp="1594753500351" />
-    <state x="588" y="288" width="800" height="528" key="Vcs.Push.Dialog.v2" timestamp="1597536780504">
+    <state x="588" y="288" width="800" height="528" key="Vcs.Push.Dialog.v2" timestamp="1597539379432">
       <screen x="67" y="27" width="1853" height="1053" />
     </state>
-    <state x="588" y="288" width="800" height="528" key="Vcs.Push.Dialog.v2/67.27.1853.1053@67.27.1853.1053" timestamp="1597536780504" />
+    <state x="588" y="288" width="800" height="528" key="Vcs.Push.Dialog.v2/67.27.1853.1053@67.27.1853.1053" timestamp="1597539379432" />
     <state x="167" y="125" width="1653" height="855" key="com.intellij.history.integration.ui.views.DirectoryHistoryDialog" timestamp="1594755099811">
       <screen x="67" y="27" width="1853" height="1053" />
     </state>
@@ -483,6 +499,10 @@
       <screen x="67" y="27" width="1853" height="1053" />
     </state>
     <state x="521" y="158" width="934" height="789" key="com.intellij.openapi.editor.actions.MultiplePasteAction$ClipboardContentChooser/67.27.1853.1053@67.27.1853.1053" timestamp="1590645565516" />
+    <state x="477" y="344" width="1023" height="417" key="git4idea.merge.GitMergeDialog" timestamp="1597537947195">
+      <screen x="67" y="27" width="1853" height="1053" />
+    </state>
+    <state x="477" y="344" width="1023" height="417" key="git4idea.merge.GitMergeDialog/67.27.1853.1053@67.27.1853.1053" timestamp="1597537947195" />
     <state x="585" y="417" width="806" height="270" key="git4idea.rebase.GitRebaseDialog" timestamp="1594753502285">
       <screen x="67" y="27" width="1853" height="1053" />
     </state>
