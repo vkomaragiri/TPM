@@ -16,7 +16,7 @@
 
 class Utils {
     public:
-    static int getDomainSize(vector<Variable*> elements);
+    static int getDomainSize(vector<Variable*> &elements);
     static void updateCPT(Function &func, Data &data, bool doStructLearning);
     static void getXStat(Variable* var, Data &data, vector<ldouble> &table);
     static void getXYStat(Variable* var1, Variable *cpt_var, Data &data, vector<vector<ldouble>> &table);
@@ -61,7 +61,7 @@ class Utils {
     }
 
     template <class T>
-    static ldouble sum1d(vector<T> weights){
+    static ldouble sum1d(vector<T> &weights){
         T res = 0.0;
         for(auto &val: weights){
             res += val;
@@ -70,7 +70,7 @@ class Utils {
     }
     template<class T>
     static void normalizeDim2(vector<vector<T>> &v){
-        vector<T> norm_const = vector<T> (v[0].size(), 0.0);
+        vector<T> norm_const(v[0].size(), 0.0);
         for(int i = 0; i < v.size(); i++){
             for(int j = 0; j < v[i].size(); j++) {
                 norm_const[j] += v[i][j];
@@ -105,8 +105,8 @@ class Utils {
     template <class T>
     static void normalize2d(vector<vector<T>> &v){
         T norm_const = 0;
-        for(auto row: v){
-            for(auto elem: row){
+        for(auto &row: v){
+            for(auto &elem: row){
                 norm_const += elem;
             }
         }
@@ -119,7 +119,7 @@ class Utils {
     template <class T>
     static ldouble normalize1d(vector<T> &v){
         T norm_const = 0;
-        for(auto elem: v){
+        for(auto &elem: v){
             norm_const += elem;
         }
         for(int i = 0; i < v.size(); i++){
@@ -129,7 +129,7 @@ class Utils {
     }
     template <class T>
     static void print1d(vector<T> &v){
-        for(auto elem: v){
+        for(auto &elem: v){
             cout << elem << " ";
         }
         cout << endl;

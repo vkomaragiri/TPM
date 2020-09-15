@@ -13,7 +13,26 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="5eb8b5c9-221e-45ef-8b8c-610ebdcc0722" name="Default Changelist" comment="">
+      <change afterPath="$PROJECT_DIR$/target_src/python/pygmlib.cpython-36m-x86_64-linux-gnu.so" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/include/CLT.h" beforeDir="false" afterPath="$PROJECT_DIR$/include/CLT.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/include/Data.h" beforeDir="false" afterPath="$PROJECT_DIR$/include/Data.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/include/HyperParameters.h" beforeDir="false" afterPath="$PROJECT_DIR$/include/HyperParameters.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/include/MT.h" beforeDir="false" afterPath="$PROJECT_DIR$/include/MT.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/include/Utils.h" beforeDir="false" afterPath="$PROJECT_DIR$/include/Utils.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/BN_Sampler.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/BN_Sampler.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/CLT.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/CLT.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Data.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/Data.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/HyperParameters.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/HyperParameters.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/MT.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/MT.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/PBPythonInterface.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/PBPythonInterface.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Utils.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/Utils.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target_src/python/FBN.py" beforeDir="false" afterPath="$PROJECT_DIR$/target_src/python/FBN.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target_src/python/run_gen_evid.py" beforeDir="false" afterPath="$PROJECT_DIR$/target_src/python/run_gen_evid.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target_src/python/run_learn_fbn.py" beforeDir="false" afterPath="$PROJECT_DIR$/target_src/python/run_learn_fbn.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target_src/python/run_sample_inf_fbn.py" beforeDir="false" afterPath="$PROJECT_DIR$/target_src/python/run_sample_inf_fbn.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target_src/python/sample_inf_fbn.py" beforeDir="false" afterPath="$PROJECT_DIR$/target_src/python/sample_inf_fbn.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target_src/python/sample_uai_bn.py" beforeDir="false" afterPath="$PROJECT_DIR$/target_src/python/sample_uai_bn.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -62,7 +81,7 @@
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
     <property name="SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
     <property name="WebServerToolWindowFactoryState" value="false" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/../Original" />
     <property name="node.js.detected.package.eslint" value="true" />
     <property name="node.js.detected.package.tslint" value="true" />
     <property name="node.js.path.for.package.eslint" value="project" />
@@ -73,11 +92,11 @@
   </component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/target_src/python" />
+      <recent name="$PROJECT_DIR$" />
       <recent name="$PROJECT_DIR$/target_src" />
       <recent name="$PROJECT_DIR$/models/FBN/NN" />
       <recent name="$PROJECT_DIR$/evid/FBN/NN" />
-      <recent name="$PROJECT_DIR$/target_src/python" />
-      <recent name="$PROJECT_DIR$/results/PR/FBN/v2" />
     </key>
     <key name="CopyFile.RECENT_KEYS">
       <recent name="$PROJECT_DIR$/target_src/python" />
@@ -340,7 +359,20 @@
       <workItem from="1597393196803" duration="8371000" />
       <workItem from="1597427815464" duration="4796000" />
       <workItem from="1597533673368" duration="7786000" />
-      <workItem from="1597726911822" duration="651000" />
+      <workItem from="1597726911822" duration="1640000" />
+      <workItem from="1597736766707" duration="617000" />
+      <workItem from="1597896552528" duration="142000" />
+      <workItem from="1597905912873" duration="1369000" />
+      <workItem from="1597911651572" duration="2489000" />
+      <workItem from="1598281030757" duration="12074000" />
+      <workItem from="1598334530900" duration="7166000" />
+      <workItem from="1598379547171" duration="597000" />
+      <workItem from="1598380757222" duration="3541000" />
+      <workItem from="1598387113886" duration="3520000" />
+      <workItem from="1599508574228" duration="1119000" />
+      <workItem from="1599514120731" duration="4563000" />
+      <workItem from="1599521490849" duration="4853000" />
+      <workItem from="1600170536257" duration="8433000" />
     </task>
     <task id="LOCAL-00001" summary="Init">
       <created>1587485759076</created>
@@ -433,7 +465,21 @@
       <option name="project" value="LOCAL" />
       <updated>1597539929753</updated>
     </task>
-    <option name="localTasksCounter" value="14" />
+    <task id="LOCAL-00014" summary="Init">
+      <created>1597735332025</created>
+      <option name="number" value="00014" />
+      <option name="presentableId" value="LOCAL-00014" />
+      <option name="project" value="LOCAL" />
+      <updated>1597735332025</updated>
+    </task>
+    <task id="LOCAL-00015" summary="Init">
+      <created>1597735394997</created>
+      <option name="number" value="00015" />
+      <option name="presentableId" value="LOCAL-00015" />
+      <option name="project" value="LOCAL" />
+      <updated>1597735394997</updated>
+    </task>
+    <option name="localTasksCounter" value="16" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -473,14 +519,14 @@
       <screen x="67" y="27" width="1853" height="1053" />
     </state>
     <state x="726" y="301" width="524" height="503" key="#com.intellij.refactoring.safeDelete.UnsafeUsagesDialog/67.27.1853.1053@67.27.1853.1053" timestamp="1594730656120" />
-    <state x="545" y="147" width="887" height="810" key="CommitChangelistDialog2" timestamp="1597735331375">
+    <state x="545" y="147" width="887" height="810" key="CommitChangelistDialog2" timestamp="1597735394914">
       <screen x="67" y="27" width="1853" height="1053" />
     </state>
-    <state x="545" y="147" width="887" height="810" key="CommitChangelistDialog2/67.27.1853.1053@67.27.1853.1053" timestamp="1597735331375" />
-    <state x="771" y="310" width="471" height="484" key="FileChooserDialogImpl" timestamp="1597536563157">
+    <state x="545" y="147" width="887" height="810" key="CommitChangelistDialog2/67.27.1853.1053@67.27.1853.1053" timestamp="1597735394914" />
+    <state x="771" y="310" width="471" height="484" key="FileChooserDialogImpl" timestamp="1600187331082">
       <screen x="67" y="27" width="1853" height="1053" />
     </state>
-    <state x="771" y="310" width="471" height="484" key="FileChooserDialogImpl/67.27.1853.1053@67.27.1853.1053" timestamp="1597536563157" />
+    <state x="771" y="310" width="471" height="484" key="FileChooserDialogImpl/67.27.1853.1053@67.27.1853.1053" timestamp="1600187331082" />
     <state x="842" y="446" width="302" height="275" key="Github.ShareDialog" timestamp="1597536688882">
       <screen x="67" y="27" width="1853" height="1053" />
     </state>
@@ -501,10 +547,10 @@
       <screen x="67" y="27" width="1853" height="1053" />
     </state>
     <state x="658" y="257" width="649" height="591" key="VCS.ChangeListViewerDialog/67.27.1853.1053@67.27.1853.1053" timestamp="1594753500351" />
-    <state x="588" y="288" width="800" height="528" key="Vcs.Push.Dialog.v2" timestamp="1597735345258">
+    <state x="588" y="288" width="800" height="528" key="Vcs.Push.Dialog.v2" timestamp="1597735407392">
       <screen x="67" y="27" width="1853" height="1053" />
     </state>
-    <state x="588" y="288" width="800" height="528" key="Vcs.Push.Dialog.v2/67.27.1853.1053@67.27.1853.1053" timestamp="1597735345258" />
+    <state x="588" y="288" width="800" height="528" key="Vcs.Push.Dialog.v2/67.27.1853.1053@67.27.1853.1053" timestamp="1597735407392" />
     <state x="167" y="125" width="1653" height="855" key="com.intellij.history.integration.ui.views.DirectoryHistoryDialog" timestamp="1594755099811">
       <screen x="67" y="27" width="1853" height="1053" />
     </state>
@@ -513,14 +559,10 @@
       <screen x="67" y="27" width="1853" height="1053" />
     </state>
     <state x="167" y="125" width="1653" height="855" key="com.intellij.history.integration.ui.views.FileHistoryDialog/67.27.1853.1053@67.27.1853.1053" timestamp="1594755376505" />
-    <state x="641" y="380" key="com.intellij.ide.util.TipDialog" timestamp="1597726925130">
+    <state x="641" y="380" key="com.intellij.ide.util.TipDialog" timestamp="1600170537068">
       <screen x="67" y="27" width="1853" height="1053" />
     </state>
-    <state x="641" y="380" key="com.intellij.ide.util.TipDialog/67.27.1853.1053@67.27.1853.1053" timestamp="1597726925130" />
-    <state x="521" y="158" width="934" height="789" key="com.intellij.openapi.editor.actions.MultiplePasteAction$ClipboardContentChooser" timestamp="1590645565516">
-      <screen x="67" y="27" width="1853" height="1053" />
-    </state>
-    <state x="521" y="158" width="934" height="789" key="com.intellij.openapi.editor.actions.MultiplePasteAction$ClipboardContentChooser/67.27.1853.1053@67.27.1853.1053" timestamp="1590645565516" />
+    <state x="641" y="380" key="com.intellij.ide.util.TipDialog/67.27.1853.1053@67.27.1853.1053" timestamp="1600170537068" />
     <state x="477" y="344" width="1023" height="417" key="git4idea.merge.GitMergeDialog" timestamp="1597537947195">
       <screen x="67" y="27" width="1853" height="1053" />
     </state>

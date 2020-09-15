@@ -10,7 +10,7 @@ void MT::learnEM(Data &data) {
     ncomponents = HyperParameters::num_components;
     prob_mixture = vector<ldouble> (ncomponents);
     trees = vector<CLT> (ncomponents);
-    vector<vector<ldouble>> weights = vector<vector<ldouble>> (ncomponents);
+    vector<vector<ldouble>> weights(ncomponents, vector<ldouble> (data.nexamples));
 
     for (int i = 0; i < data.nfeatures; i++) {
         Variable* var = new Variable(i, data.dsize[i]);
@@ -18,7 +18,6 @@ void MT::learnEM(Data &data) {
     }
     for(int i = 0; i < ncomponents; i++){
         trees[i].variables = variables;
-        weights[i] = vector<ldouble> (data.nexamples);
         for(ldouble & j : weights[i]){
             j = myRandom::getDouble();
         }
@@ -30,7 +29,7 @@ void MT::learnEM(Data &data) {
         //M-Step
         for (int i = 0; i < ncomponents; i++) {
             prob_mixture[i] = Utils::sum1d(weights[i]);
-            trees[i].learn(data, weights[i], true, iter % HyperParameters::interval_for_structure_learning == 0);
+            trees[i].learn(data, weights[i], true, iter % HyperParameters::interval_for_structure_learning == 0, 0, HyperParameters::laplace/ncomponents);
             /*
             if (iter == 1)
                 trees[i].learn(data, weights[i], true, true);
@@ -49,6 +48,7 @@ void MT::learnEM(Data &data) {
     }
 }
 
+/*
 void MT::learnGD(Data &data, Data &test_data) {
     //Initialization
     ncomponents = HyperParameters::num_components;
@@ -115,8 +115,9 @@ void MT::learnGD(Data &data, Data &test_data) {
         cout << iter << " " << log_likelihood(test_data) << endl;
     }
 }
+*/
 
-ldouble MT::getProbability(vector<int> example){
+ldouble MT::getProbability(vector<int> &example){
     for(int i = 0; i < example.size(); i++){
         variables[i]->t_val = example[i];
     }
@@ -128,7 +129,7 @@ ldouble MT::getProbability(vector<int> example){
     return prob;
 }
 
-ldouble MT::getLogProbability(vector<int> example){
+ldouble MT::getLogProbability(vector<int> &example){
     for(int i = 0; i < example.size(); i++){
         variables[i]->t_val = example[i];
     }
@@ -163,6 +164,7 @@ void MT::print() {
     Utils::print1d(prob_mixture);
 }
 
+/*
 void MT::learnRF(Data &data, int r, Data &valid_data) {
     //Initialization
     ncomponents = HyperParameters::num_components;
@@ -269,7 +271,7 @@ void MT::learnSEM(Data &data, int m) {
         }
     }
 }
-
+*/
 void MT::write(const string &filename) {
     if(!filename.empty()) {
         ofstream out(filename);
@@ -373,8 +375,8 @@ void MT::read(const string &filename)
                 int varid;
                 in >> varid;
                 trees[i].functions[j].variables[k] = variables[varid];
-                if(k == nvars-1)
-                    trees[i].functions[j].cpt_var = variables[varid];
+                //if(k == nvars-1)
+                //    trees[i].functions[j].cpt_var = variables[varid];
             }
         }
 
@@ -384,7 +386,10 @@ void MT::read(const string &filename)
             table=vector<ldouble>(tab_size);
             for (int k=0;k<tab_size;k++) {
                 in>>table[k];
+                //if(table[k] < 0.01) table[k] = 0.01;
+                //else if(table[k] > 0.99) table[k] = 0.99;
             }
+            //Utils::normalize1d(table);
         }
     }
     in.close();

@@ -9,7 +9,7 @@
 #include "../include/Data.h"
 
 
-bool Data::readCSVData(string dataset){
+bool Data::readCSVData(string &dataset){
     ifstream in(dataset);
     if(!in.good())
         return 0;
@@ -58,18 +58,17 @@ void Data::append(Data &new_data){
     }
 }
 
-void Data::computeMI(){
-    pxy = vector<vector<vector<vector<ldouble>>>> (nfeatures);
+void Data::computeMI(ldouble &laplace){
+    pxy = vector<vector<vector<vector<ldouble>>>> (nfeatures, vector<vector<vector<ldouble>>> (nfeatures));
     px = vector<vector<ldouble>> (nfeatures);
     for(int i = 0; i < nfeatures; i++){
-        pxy[i] = vector<vector<vector<ldouble>>> (nfeatures);
         for(int j = 0; j < nfeatures; j++){
             pxy[i][j] = vector<vector<ldouble>> (dsize[i]);
             for(int k = 0; k < dsize[i]; k++){
-                pxy[i][j][k] = vector<ldouble> (dsize[j], 1); //laplace count
+                pxy[i][j][k] = vector<ldouble> (dsize[j], laplace); //laplace count
             }
         }
-        px[i] = vector<ldouble> (dsize[i], 1.0); //laplace 1-addition
+        px[i] = vector<ldouble> (dsize[i], laplace); //laplace 1-addition
     }
     for(int i = 0; i < nexamples; i++){
         for(int j = 0; j < nfeatures; j++){
@@ -90,14 +89,13 @@ void Data::computeMI(){
     lpx = vector<vector<ldouble>> (nfeatures);
     for(int i = 0; i < px.size(); i++){
         lpx[i] = vector<ldouble> (dsize[i]);
-        for(int j = 0; j < px[i].size(); j++){
-            lpx[i][j] = log(px[i][j]);
+        for(int xi = 0; xi < px[i].size(); xi++){
+            lpx[i][xi] = log(px[i][xi]);
         }
     }
 
-    mi = vector<vector<ldouble>> (nfeatures);
+    mi = vector<vector<ldouble>> (nfeatures, vector<ldouble> (nfeatures));
     for(int i = 0; i < nfeatures; i++){
-        mi[i] = vector<ldouble> (nfeatures);
         for(int j = i+1; j < nfeatures; j++){
             mi[i][j] = 0;
             for(int xi = 0; xi < dsize[i]; xi++){

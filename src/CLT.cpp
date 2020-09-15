@@ -72,7 +72,7 @@ void CLT::removeEvidence(int var)
     variables[var]->is_evid = 0;
 }
 
-void CLT::learn(Data &data, vector<ldouble> &weights_, bool isComp, bool doStructLearning, int r){
+void CLT::learn(Data &data, vector<ldouble> &weights_, bool isComp, bool doStructLearning, int r, ldouble laplace){
     data.setWeights(weights_);
     if(!isComp) {
         for (int i = 0; i < data.nfeatures; i++) {
@@ -81,7 +81,7 @@ void CLT::learn(Data &data, vector<ldouble> &weights_, bool isComp, bool doStruc
         }
     }
     if(doStructLearning) {
-        data.computeMI();
+        data.computeMI(laplace);
         Graph g;
         for (int i = 0; i < data.nfeatures; i++) {
             for (int j = i + 1; j < data.nfeatures; j++) {
@@ -116,8 +116,14 @@ void CLT::learn(Data &data, vector<ldouble> &weights_, bool isComp, bool doStruc
         for (int i = 0; i < st.directed_edges.size(); i++) {
             for (int j = 0; j < st.directed_edges[i].size(); j++) {
                 Function func = Function();
-                func.variables.push_back(variables[i]);
-                func.variables.push_back(variables[st.directed_edges[i][j]]);
+                if(i < st.directed_edges[i][j]) {
+                    func.variables.push_back(variables[i]);
+                    func.variables.push_back(variables[st.directed_edges[i][j]]);
+                }
+                else{
+                    func.variables.push_back(variables[st.directed_edges[i][j]]);
+                    func.variables.push_back(variables[i]);
+                }
                 func.cpt_var = variables[st.directed_edges[i][j]];
                 functions.push_back(func);
             }
@@ -143,7 +149,7 @@ ldouble CLT::log_likelihood(Data &data){
     return res;
 }
 
-ldouble CLT::getProbability(vector<int> example) {
+ldouble CLT::getProbability(vector<int> &example) {
     ldouble res = 1.0;
     for(int i = 0; i < example.size(); i++){
         variables[i]->t_val = example[i];
@@ -154,7 +160,7 @@ ldouble CLT::getProbability(vector<int> example) {
     return res;
 }
 
-ldouble CLT::getLogProbability(vector<int> example) {
+ldouble CLT::getLogProbability(vector<int> &example) {
     ldouble res = 0.0;
     for(int i = 0; i < example.size(); i++){
         variables[i]->t_val = example[i];

@@ -12,9 +12,9 @@
 #include <boost/assert.hpp>
 #include "../include/Utils.h"
 
-int Utils::getDomainSize(vector<Variable*> elements) {
+int Utils::getDomainSize(vector<Variable*> &elements) {
     int res = 1;
-    for(auto it: elements){
+    for(auto &it: elements){
         res *= it->d;
     }
     return res;
@@ -50,6 +50,11 @@ void Utils::updateCPT(Function &func, Data &data, bool doStructLearning){
         else{
             func.potentials = data.px[func.variables[0]->id];
         }
+        for(auto &val: func.potentials){
+            if(val < 0.01) val = 0.01;
+            else if(val > 0.99) val = 0.99;
+        }
+        Utils::normalize1d(func.potentials);
     }
     else if(func.variables.size() == 2){
         Variable *t = func.cpt_var, *s;
@@ -67,6 +72,10 @@ void Utils::updateCPT(Function &func, Data &data, bool doStructLearning){
         }
         vector<ldouble> potentials_;
         for(vector<ldouble> row: table){
+            for(auto &val: row){
+                if(val < 0.01) val = 0.01;
+                else if(val > 0.99) val = 0.99;
+            }
             Utils::normalize1d(row);
             copy(row.begin(), row.end(), back_inserter(potentials_));
         }
@@ -111,7 +120,7 @@ void Utils::doUnion(vector<Variable *> &vars1, vector<Variable *> &vars2) {
 }
 
 void Utils::doDifference(vector<Variable*> &vars1, vector<Variable*> &vars2, vector<Variable*> &out) {
-    for (auto var: vars1) {
+    for (auto &var: vars1) {
         if (find(vars2.begin(), vars2.end(), var) == vars2.end()) {
             out.push_back(var);
         }

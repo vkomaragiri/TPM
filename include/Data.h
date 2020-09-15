@@ -23,14 +23,13 @@ public:
     vector<vector<ldouble>> mi;
     vector<ldouble> weights;
 
-    void setWeights(vector<ldouble> wts){
+    void setWeights(vector<ldouble> &wts){
         weights.clear();
         weights = wts;
     }
-    bool readCSVData(string filename);
+    bool readCSVData(string &filename);
     void append(Data &new_matrix);
-    void computeMI();
-    void computeMI(vector<ldouble> &weights);
+    void computeMI(ldouble &laplace);
 };
 
 

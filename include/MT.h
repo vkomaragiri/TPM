@@ -21,10 +21,10 @@ public:
     ~MT(){}
     MT(const MT &mt): ncomponents(mt.ncomponents), prob_mixture(mt.prob_mixture), trees(mt.trees){}
     void learnEM(Data &data);
-    void learnRF(Data &data, int r, Data &valid_data);
-    void learnSEM(Data &data, int m = 1);
+    //void learnRF(Data &data, int r, Data &valid_data);
+    //void learnSEM(Data &data, int m = 1);
 
-    void learnGD(Data &data, Data &test_data);
+    //void learnGD(Data &data, Data &test_data);
 
     void write(const string& filename);
     void read(const string& filename);
@@ -32,8 +32,8 @@ public:
     void print();
     ldouble log_likelihood(Data &data);
 
-    ldouble getLogProbability(vector<int> example);
-    ldouble getProbability(vector<int> example);
+    ldouble getLogProbability(vector<int> &example);
+    ldouble getProbability(vector<int> &example);
 
     void setEvidence(int var, int val);
 };

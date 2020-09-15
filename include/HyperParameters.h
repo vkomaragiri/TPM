@@ -26,11 +26,13 @@ struct HyperParameters{
     static ldouble  mi_low_limit;
     static int num_samples;
     static ORDERING_HEURISTIC ord_heu;
+    static ldouble laplace;
     HyperParameters()= default;
     static void setNumIterationsEM(int x){if (x<100000) num_iterations_em=x;}
     static void setIntervalForStructureLearning(int x){interval_for_structure_learning=x;}
     static void setNumComponents(int x){num_components=x;};
     static void setTolerance(ldouble x){tol=x;}
+
 };
 
 #endif //PROPOSALS_HYPERPARAMETERS_H
