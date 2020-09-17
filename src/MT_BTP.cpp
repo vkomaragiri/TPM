@@ -13,7 +13,9 @@ MT_BTP::MT_BTP(const MT &mt_) {
 
 ldouble MT_BTP::getPE() {
     ldouble res = 0.0;
+    Utils::print1d(mt.prob_mixture);
     for(int i = 0; i < mt.ncomponents; i++){
+        cout << btps[i].getPE() << endl;
         res += mt.prob_mixture[i]*btps[i].getPE();
     }
     return res;

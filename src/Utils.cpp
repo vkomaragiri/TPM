@@ -42,10 +42,9 @@ void Utils::getXYStat(Variable* var1, Variable *cpt_var, Data &data, vector<vect
 
 void Utils::updateCPT(Function &func, Data &data, bool doStructLearning){
     if(func.variables.size() == 1){
+        //Utils::getXStat(func.variables[0], data, func.potentials);
         if(!doStructLearning) {
-            vector<ldouble> table;
-            Utils::getXStat(func.variables[0], data, table);
-            func.potentials = table;
+            Utils::getXStat(func.variables[0], data, func.potentials);
         }
         else{
             func.potentials = data.px[func.variables[0]->id];
@@ -63,6 +62,7 @@ void Utils::updateCPT(Function &func, Data &data, bool doStructLearning){
         } else {
             s = func.variables[0];
         }
+        func.potentials = vector<ldouble>(s->d*t->d, 0.0);
         vector<vector<ldouble>> table;
         if(!doStructLearning) {
             Utils::getXYStat(s, t, data, table);
@@ -70,16 +70,45 @@ void Utils::updateCPT(Function &func, Data &data, bool doStructLearning){
         else{
             table = data.pxy[s->id][t->id];
         }
-        vector<ldouble> potentials_;
-        for(vector<ldouble> row: table){
+        for(auto &row: table){
             for(auto &val: row){
                 if(val < 0.01) val = 0.01;
                 else if(val > 0.99) val = 0.99;
             }
+        }
+        Utils::normalize2d(table);
+        for(int i = 0; i < s->d; i++){
+            s->t_val = i;
+            ldouble norm_const = 0.0;
+            for(int j = 0; j < t->d; j++){
+                norm_const += table[i][j];
+            }
+            for(int j = 0; j < t->d; j++) {
+                t->t_val = j;
+                func.potentials[Utils::getAddr(func.variables)] = table[i][j] / norm_const;
+            }
+        }
+        /*
+        if(!doStructLearning) {
+            Utils::getXYStat(s, t, data, table);
+        }
+        else{
+            table = data.pxy[s->id][t->id];
+        }
+
+        vector<ldouble> potentials_;
+        for(vector<ldouble> &row: table){
+            /*
+            for(auto &val: row){
+                if(val < 0.01) val = 0.01;
+                else if(val > 0.99) val = 0.99;
+            }
+            //
             Utils::normalize1d(row);
             copy(row.begin(), row.end(), back_inserter(potentials_));
         }
         func.potentials = potentials_;
+        */
     }
 }
 
