@@ -5,21 +5,16 @@
 #include "../include/BN_Sampler.h"
 
 BN_Sampler::BN_Sampler(CLT &clt) {
-    //cout << 0 << endl;
     variables = clt.variables;
-    //Utils::printVarVector(variables);
     vector<int> order;
     Utils::getTopologicalOrder(variables, clt.functions, order);
-    //cout << 1 << endl;
-    vector<int> var_func = vector<int> (order.size());
+    vector<int> var_func(order.size());
     for(int i = 0; i < clt.functions.size(); i++){
         var_func[clt.functions[i].cpt_var->id] = i;
     }
-    //cout << 2 << endl;
     for(int var : order){
         sampling_functions.emplace_back(clt.functions[var_func[var]]);
     }
-    //cout << 3 << endl;
 }
 
 void BN_Sampler::setEvidence(){
@@ -57,6 +52,7 @@ ldouble BN_Sampler::getProbability(vector<int> &sample) {
     return p;
 }
 
+
 ldouble BN_Sampler::getWeight(vector<int> &sample) {
     ldouble wt = 1.0;
     for(auto &var: variables){
@@ -69,5 +65,4 @@ ldouble BN_Sampler::getWeight(vector<int> &sample) {
     }
     return wt;
 }
-
 

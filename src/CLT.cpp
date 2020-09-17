@@ -150,14 +150,17 @@ ldouble CLT::log_likelihood(Data &data){
 }
 
 ldouble CLT::getProbability(vector<int> &example) {
+    /*
     ldouble res = 1.0;
     for(int i = 0; i < example.size(); i++){
         variables[i]->t_val = example[i];
     }
-    for(auto func: functions){
+    for(auto &func: functions){
         res *= func.potentials[Utils::getAddr(func.variables)];
     }
     return res;
+    */
+    return exp(getLogProbability(example));
 }
 
 ldouble CLT::getLogProbability(vector<int> &example) {
@@ -165,7 +168,7 @@ ldouble CLT::getLogProbability(vector<int> &example) {
     for(int i = 0; i < example.size(); i++){
         variables[i]->t_val = example[i];
     }
-    for(auto func: functions){
+    for(auto &func: functions){
         res += log(func.potentials[Utils::getAddr(func.variables)]);
     }
     return res;

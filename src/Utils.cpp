@@ -96,6 +96,7 @@ Data* Utils::sliceOfData(vector<int> &indices, Data &data){
 }
 
 void Utils::doIntersection(vector<Variable *> &vars1, vector<Variable *> &vars2, vector<Variable *> &out) {
+    /*
     if(vars1.size() < vars2.size()){
         for(auto &var: vars1){
             if(find(vars2.begin(), vars2.end(), var) != vars2.end()){
@@ -110,28 +111,60 @@ void Utils::doIntersection(vector<Variable *> &vars1, vector<Variable *> &vars2,
             }
         }
     }
+    */
+    if(vars1.size() < vars2.size()){
+        out = vector<Variable*>(vars1.size());
+    }
+    else{
+        out = vector<Variable*>(vars2.size());
+    }
+    vector<Variable*>::iterator it;
+    it = set_intersection(vars1.begin(), vars1.end(), vars2.begin(), vars2.end(), out.begin(), Utils::less_than_comp);
+    out.resize(it-out.begin());
+}
+
+bool Utils::less_than_comp(Variable *a, Variable *b) {
+    return (a->id < b->id);
 }
 
 void Utils::doUnion(vector<Variable *> &vars1, vector<Variable *> &vars2) {
+    /*
     for(auto &var: vars2){
         if(find(vars1.begin(), vars1.end(), var) == vars1.end())
             vars1.push_back(var);
     }
+    */
+    vector<Variable*> out(vars1.size()+vars2.size());
+    vector<Variable*>::iterator it;
+    it = set_union(vars1.begin(), vars1.end(), vars2.begin(), vars2.end(), out.begin(), Utils::less_than_comp);
+    out.resize(it-out.begin());
+    vars1.clear();
+    for(auto &var: out){
+        vars1.push_back(var);
+    }
+
 }
 
 void Utils::doDifference(vector<Variable*> &vars1, vector<Variable*> &vars2, vector<Variable*> &out) {
+    /*
     for (auto &var: vars1) {
         if (find(vars2.begin(), vars2.end(), var) == vars2.end()) {
             out.push_back(var);
         }
     }
+    */
+    out = vector<Variable*>(vars1.size());
+    vector<Variable*>::iterator it;
+    it = set_difference(vars1.begin(), vars1.end(), vars2.begin(), vars2.end(), out.begin(), Utils::less_than_comp);
+    out.resize(it-out.begin());
+
 }
 void Utils::multiplyBucket(vector<Function> &functions, vector<Variable*> &out_vars, vector<ldouble> &out){
     int dom_size = Utils::getDomainSize(out_vars);
     out = vector<ldouble> (dom_size, 1.0);
     for(int i = 0; i < dom_size; i++){
         setAddr(out_vars, i);
-        for(auto func: functions){
+        for(auto &func: functions){
             out[i] *= func.potentials[getAddr(func.variables)];
         }
     }

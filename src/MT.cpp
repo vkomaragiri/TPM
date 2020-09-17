@@ -118,6 +118,7 @@ void MT::learnGD(Data &data, Data &test_data) {
 */
 
 ldouble MT::getProbability(vector<int> &example){
+    /*
     for(int i = 0; i < example.size(); i++){
         variables[i]->t_val = example[i];
     }
@@ -127,6 +128,8 @@ ldouble MT::getProbability(vector<int> &example){
     }
     prob *= comp_prob;
     return prob;
+     */
+    return exp(getLogProbability(example));
 }
 
 ldouble MT::getLogProbability(vector<int> &example){

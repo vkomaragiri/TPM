@@ -103,7 +103,7 @@ void BTP::upward_pass(){ //leaves to root
             pe *= Utils::normalize1d(sum);
             Function newf(mar_variables, sum);
             int bucket_loc = buckets.size();
-            for(auto var: newf.variables){
+            for(auto &var: newf.variables){
                 if(var_pos[var->id] < bucket_loc){
                     bucket_loc = var_pos[var->id];
                 }
@@ -152,7 +152,6 @@ void BTP::downward_pass(){ //root to leaves
         downward_performed = true;
     }
 }
-
 
 void BTP::getPosteriorSampler(BN_Sampler &bns) {
     propagate();

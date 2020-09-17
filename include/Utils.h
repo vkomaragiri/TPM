@@ -26,6 +26,7 @@ class Utils {
     static void getTopologicalOrder(vector<Variable*>& variables, vector<Function>& functions, vector<int>& order);
     static void getMinFillOrder(vector<Variable*>& variables, vector<Function>& functions, vector<int>& order);
 
+    static bool less_than_comp(Variable* a, Variable *b);
     static void doUnion(vector<Variable*> &vars1, vector<Variable*> &vars2);
     static void doIntersection(vector<Variable*> &vars1, vector<Variable*> &vars2, vector<Variable*> &out);
     static void doDifference(vector<Variable*> &vars1, vector<Variable*> &vars2, vector<Variable*> &out);
@@ -54,7 +55,7 @@ class Utils {
     }
 
     static void printVarVector(vector<Variable*> &vars){
-        for(auto var: vars){
+        for(auto &var: vars){
             cout << var->id << " ";
         }
         cout << endl;
