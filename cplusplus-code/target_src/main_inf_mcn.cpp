@@ -19,7 +19,7 @@ using namespace std;
 
 int main(int argc, char *argv[]) {
     if(argc < 6){
-        cout << "Usage format: ./inf-MCN <model_directory> <(results)dataset_directory> <dataset_name> <evid_percent> <data-mcn-available>" << endl;
+        cout << "Usage format: ./inf-mcn <model_directory> <(results)dataset_directory> <dataset_name> <evid_percent> <data-mcn-available>" << endl;
         exit(0);
     }
     string model_dirctory(argv[1]);
