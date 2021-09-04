@@ -130,7 +130,6 @@ int main(int argc, char *argv[]) {
                 data_mcn_log_prob.push_back(log(data_mcns.getProbability(row)));
                 i++;
             }
-            cout << k << "," << i << endl;
             bn_data.close();
             Utils::print1d(oracle_mcn_log_prob, oracle_mcnprobfilename);
             Utils::print1d(data_mcn_log_prob, data_mcnprobfilename);
