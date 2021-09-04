@@ -79,7 +79,7 @@ void compute_posterior_marginals(vector<vector<int>> &samples, vector<ldouble>&l
 
 int main(int argc, char *argv[]) {
     if(argc < 5){
-        cout << "Usage format: ./inf <model_directory> <dataset_directory> <dataset_name> <evid_percent>" << endl;
+        cout << "Usage format: ./inf-bn <model_directory> <(results)dataset_directory> <dataset_name> <evid_percent>" << endl;
         exit(0);
     }
     string model_dirctory(argv[1]);
@@ -169,20 +169,22 @@ int main(int argc, char *argv[]) {
         bns.generateSamples(nsamples, samples);    
 
         cout << "Writing samples and evidence..." << endl;
-        string outfilename, evidfilename, mtprobfilename, bnprobfilename, mtprobfilename2;
+        string outfilename, evidfilename, mtprobfilename, oracleprobfilename, mtprobfilename2, lwprobfilename;
         if(n == 0){
-            outfilename = dataset_directory+dataset_name+"_"+argv[4]+"_percent_"+to_string(k)+".uai";
+            outfilename = dataset_directory+dataset_name+"_"+argv[4]+"_percent_"+to_string(k)+".post.data";
             evidfilename = dataset_directory+dataset_name+"_"+argv[4]+"_percent_"+to_string(k)+".evid";
             //mtprobfilename = dataset_directory+dataset_name+"_"+argv[4]+"_percent_"+to_string(k)+".tpm";
-            bnprobfilename = dataset_directory+dataset_name+"_"+argv[4]+"_percent_"+to_string(k)+".lw";
+            oracleprobfilename = dataset_directory+dataset_name+"_"+argv[4]+"_percent_"+to_string(k)+".bn.wt";
+            lwprobfilename = dataset_directory+dataset_name+"_"+argv[4]+"_percent_"+to_string(k)+".lw.wt";
             //mtprobfilename2 = dataset_directory+dataset_name+"_"+argv[4]+"_percent_"+to_string(k)+".tpm2";
         }
         else{
-            outfilename = dataset_directory+dataset_name+"_"+argv[4]+"_percent_"+to_string(k)+"_modified.uai";
+            outfilename = dataset_directory+dataset_name+"_"+argv[4]+"_percent_"+to_string(k)+"_modified.post.data";
             evidfilename = dataset_directory+dataset_name+"_"+argv[4]+"_percent_"+to_string(k)+"_modified.evid";
             //mtprobfilename = dataset_directory+dataset_name+"_"+argv[4]+"_percent_"+to_string(k)+"_modified.tpm";
-            bnprobfilename = dataset_directory+dataset_name+"_"+argv[4]+"_percent_"+to_string(k)+"_modified.lw";
+            oracleprobfilename = dataset_directory+dataset_name+"_"+argv[4]+"_percent_"+to_string(k)+"_modified.bn.wt";
             //mtprobfilename2 = dataset_directory+dataset_name+"_"+argv[4]+"_percent_"+to_string(k)+"_modified.tpm2";
+            lwprobfilename = dataset_directory+dataset_name+"_"+argv[4]+"_percent_"+to_string(k)+"_modified.lw.wt";
         }
         Utils::printSamples(samples, outfilename);
         Utils::printEvid(evid_var, evid_val, evidfilename);
@@ -190,14 +192,17 @@ int main(int argc, char *argv[]) {
         cout <<"Computing sample probabilities" << endl;
         vector<ldouble> mcn_log_prob = vector<ldouble>(samples.size()), bn_log_prob = vector<ldouble>(samples.size());
         vector<ldouble> mcn_log_prob2 = vector<ldouble>(samples.size());
+        vector<ldouble> lw_log_prob = vector<ldouble>(samples.size());
         for(int i = 0; i < samples.size(); i++){
             //mcn_log_prob[i] = log(mcns.getProbability(samples[i]));
             bn_log_prob[i] = log(bns.getProbability(samples[i]));
+            lw_log_prob[i] = bn.getLogProbability(samples[i]);
             //mcn_log_prob2[i] = log(mcns2.getProbability(samples[i]));
         }
 
         //Utils::print1d(mcn_log_prob, mtprobfilename);
-        Utils::print1d(bn_log_prob, bnprobfilename);
+        Utils::print1d(bn_log_prob, oracleprobfilename);
+        Utils::print1d(lw_log_prob, lwprobfilename);
         //Utils::print1d(mcn_log_prob2, mtprobfilename2);
     }
 

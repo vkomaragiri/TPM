@@ -19,7 +19,7 @@ using namespace std;
 
 int main(int argc, char *argv[]) {
     if(argc < 5){
-        cout << "Usage format: ./inf <model_directory> <dataset_directory> <dataset_name> <evid_percent>" << endl;
+        cout << "Usage format: ./inf-MCN <model_directory> <(results)dataset_directory> <dataset_name> <evid_percent>" << endl;
         exit(0);
     }
     string model_dirctory(argv[1]);
@@ -38,10 +38,10 @@ int main(int argc, char *argv[]) {
 
         
         cout << "Readong oracle samples and evidence..." << endl;
-        string outfilename, evidfilename, mtprobfilename, bnprobfilename, mtprobfilename2;    
-        outfilename = dataset_directory+dataset_name+"_"+argv[4]+"_percent_"+to_string(k)+".uai";
+        string outfilename, evidfilename, mcnprobfilename, bnprobfilename, mtprobfilename2;    
+        outfilename = dataset_directory+dataset_name+"_"+argv[4]+"_percent_"+to_string(k)+".post.data";
         evidfilename = dataset_directory+dataset_name+"_"+argv[4]+"_percent_"+to_string(k)+".evid";
-        mtprobfilename = dataset_directory+dataset_name+"_"+argv[4]+"_percent_"+to_string(k)+".tpm";
+        mcnprobfilename = dataset_directory+dataset_name+"_"+argv[4]+"_percent_"+to_string(k)+".mcn.wt";
         //mtprobfilename2 = dataset_directory+dataset_name+"_"+argv[4]+"_percent_"+to_string(k)+".tpm2";
 
         vector<int> evid_var, evid_val;
@@ -88,7 +88,7 @@ int main(int argc, char *argv[]) {
             i++;
         }
         bn_data.close();
-        Utils::print1d(mcn_log_prob, mtprobfilename);
+        Utils::print1d(mcn_log_prob, mcnprobfilename);
         //Utils::print1d(mcn_log_prob2, mtprobfilename2);
     }
 

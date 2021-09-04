@@ -87,5 +87,5 @@ add_executable(learn-MCN ${COMMON_SOURCES} target_src/main_mcn.cpp)
 add_executable(merge_mcns ${COMMON_SOURCES} target_src/main_merge_mcns.cpp)
 add_executable(tree_uai ${COMMON_SOURCES} target_src/main_tree_uai.cpp)
 add_executable(inf-bn ${COMMON_SOURCES} target_src/main_inf.cpp)
-add_executable(inf-mcn ${COMMON_SOURCES} target_src/main_mcn_samples.cpp)
+add_executable(inf-mcn ${COMMON_SOURCES} target_src/main_inf_mcn.cpp)
 
