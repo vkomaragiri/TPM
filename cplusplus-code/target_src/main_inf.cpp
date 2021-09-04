@@ -196,7 +196,7 @@ int main(int argc, char *argv[]) {
         for(int i = 0; i < samples.size(); i++){
             //mcn_log_prob[i] = log(mcns.getProbability(samples[i]));
             bn_log_prob[i] = log(bns.getProbability(samples[i]));
-            lw_log_prob[i] = bn.getLogProbability(samples[i]);
+            lw_log_prob[i] = bn.getLogLWPostProbability(samples[i]);
             //mcn_log_prob2[i] = log(mcns2.getProbability(samples[i]));
         }
 

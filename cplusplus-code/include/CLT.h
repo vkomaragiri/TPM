@@ -52,6 +52,8 @@ public:
     void readCNCounts(ifstream &in, const unordered_map<int, int> &cn_varid_ind);
     void writeCNCounts(ofstream &out);
     void normalizeParams();
+
+    ldouble getLogLWPostProbability(vector<int> &example);
 };
 
 

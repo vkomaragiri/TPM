@@ -216,6 +216,20 @@ ldouble CLT::getLogProbability(vector<int> &example) {
     return res;
 }
 
+
+ldouble CLT::getLogLWPostProbability(vector<int> &example) {
+    ldouble res = 0.0;
+    for(int i = 0; i < variables.size(); i++){
+        if(variables[i]->isEvid()) continue;
+        variables[i]->t_val = example[variables[i]->id];
+    }
+    for(auto &func: functions){
+        if(func.cpt_var->isEvid()) continue;
+        res += log(func.potentials[Utils::getAddr(func.variables)]);
+    }
+    return res;
+}
+
 void CLT::print() {
     for(int i = 0; i < functions.size(); i++){
         for(auto var: functions[i].variables){
