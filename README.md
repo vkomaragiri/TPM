@@ -7,6 +7,7 @@ cmake -B./build CMakeLists.txt
 make -j4
 ```
 
+'''
 To generate samples from the posterior distribution of the oracle BN, run:
 ```
 ./inf-bn <bn-model-directory> <samples-directory> <datafilename> <evidence_percent>
@@ -34,3 +35,4 @@ To plot the measures for different evidences and sample values, run:
 python plot_oracle_sample_inf.py <distance measure>
 ```
 Note: The distance measure can take the values {'kld', 'cd'} for {KL-divergence and Chan-Darwiche distance}.
+'''
