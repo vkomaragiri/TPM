@@ -28,6 +28,24 @@ int main(int argc, char *argv[]) {
     float evid_percent(atoi(argv[4]));
     bool flag_data_mcn(atoi(argv[5]));
     
+    vector<int> modified_evid_var, modified_evid_val;
+    string evidfilename = dataset_directory+dataset_name+"_modified.evid";
+    ifstream evid(evidfilename);
+    int n;
+    if(!evid.good()){
+        n = 0;
+        cout << "Original model used" << endl << endl;
+    }
+    else{
+        cout << "Modified treewidth model used" << endl << endl;
+        evid >> n;
+        modified_evid_val = vector<int>(n);
+        modified_evid_var = vector<int>(n);
+        for(int j = 0; j < n; j++){
+            evid >> modified_evid_var[j];
+            evid >> modified_evid_val[j];
+        }
+    }
 
     for(int k = 0; k < 5; k++){
         if(!flag_data_mcn){
@@ -35,11 +53,17 @@ int main(int argc, char *argv[]) {
             MCN mcn = MCN();
             mcn.read(model_dirctory+dataset_name+"-oracle-uai-50.mcn");
             
+            for(int j = 0; j < n; j++){
+            mcn.setEvidence(modified_evid_var[j], modified_evid_val[j]);
+            //mcn.setEvidence(modified_evid_var[j], modified_evid_val[j]);
+            //mcn2.setEvidence(modified_evid_var[j], modified_evid_val[j]);
+            }
+
             cout << "Readong oracle samples and evidence..." << endl;
             string outfilename, evidfilename, mcnprobfilename;    
-            outfilename = dataset_directory+dataset_name+"_"+argv[4]+"_percent_"+to_string(k)+".post.data";
-            evidfilename = dataset_directory+dataset_name+"_"+argv[4]+"_percent_"+to_string(k)+".evid";
-            mcnprobfilename = dataset_directory+dataset_name+"_"+argv[4]+"_percent_"+to_string(k)+".mcn.wt";
+            outfilename = dataset_directory+dataset_name+"_"+argv[4]+"_percent_"+to_string(k)+"_modified.post.data";
+            evidfilename = dataset_directory+dataset_name+"_"+argv[4]+"_percent_"+to_string(k)+"_modified.evid";
+            mcnprobfilename = dataset_directory+dataset_name+"_"+argv[4]+"_percent_"+to_string(k)+"_modified.mcn.wt";
 
             vector<int> evid_var, evid_val;
             ifstream evid_stream(evidfilename);
