@@ -36,8 +36,8 @@ public:
         dt.readCSVData(train_filename);
         Data dt_valid = Data();
         dt_valid.readCSVData(valid_filename);
-        dt.append(dt_valid);
-        mt.learnEM(dt);
+        //dt.append(dt_valid);
+        mt.learnEM(dt, dt_valid);
     }
 
     ldouble getLogLikelihood(string filename){

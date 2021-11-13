@@ -5,7 +5,7 @@
 #include <fstream>
 #include "../include/MT.h"
 
-void MT::learnEM(Data &data) {
+void MT::learnEM(Data &data, Data &valid_data) {
     //Initialization
     ncomponents = HyperParameters::num_components;
     prob_mixture = vector<ldouble> (ncomponents);
@@ -52,6 +52,8 @@ void MT::learnEM(Data &data) {
             }
         }
         Utils::normalizeDim2(weights);
+                cout << iter << " " << log_likelihood(valid_data) << endl;
+
     }
 }
 

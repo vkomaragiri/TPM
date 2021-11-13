@@ -22,7 +22,7 @@ public:
     MT(): ncomponents(0){}
     ~MT(){}
     MT(const MT &mt): ncomponents(mt.ncomponents), prob_mixture(mt.prob_mixture), trees(mt.trees){}
-    void learnEM(Data &data);
+    void learnEM(Data &data, Data &valid_data);
     //void learnRF(Data &data, int r, Data &valid_data);
     //void learnSEM(Data &data, int m = 1);
 
