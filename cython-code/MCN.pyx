@@ -1,61 +1,61 @@
 import numpy as np
 cimport numpy as cnp
 from Variable import Variable
-from BN import BN 
+from CN import CN
 cimport cython
 from libcpp cimport bool
 import sys
-from Function import Function
-from Util import computePxy
+
 
 @cython.boundscheck(False)  # Deactivate bounds checking
 @cython.wraparound(False)   # Deactivate negative indexing.
-cdef class MT:
+cdef class MCN:
     cdef double[:] prob_mixture
-    cdef list clts
+    cdef list cns
     cdef int ncomponents
     cdef list variables
 
     def __init__(self):
         self.prob_mixture = np.array([])
-        self.clts = []
+        self.cns = []
         self.ncomponents = 0
         self.variables = []
 
-    cdef void _learnEM(self, cnp.ndarray[int, ndim=2] data, int ncomponents, int num_iter):
-        cdef cnp.ndarray[int, ndim=1] dsize = np.max(data, axis = 0)+1
+    cdef void _learnEM(self, cnp.ndarray[int, ndim=2] train, cnp.ndarray[int, ndim=2] valid, int ncomponents, int num_iter):
+        cdef cnp.ndarray[int, ndim=1] dsize = np.max(train, axis = 0)+1
         self.ncomponents = ncomponents
         cdef int i, it, j
-        cdef int nexamples = data.shape[0]
-        cdef int nvars = data.shape[1]
+        cdef int nexamples = train.shape[0]
+        cdef int nvars = train.shape[1]
+        cdef double laplace = 1.0/ncomponents
+
         cdef cnp.ndarray[double, ndim=2] weights = np.random.rand(ncomponents, nexamples)
         weights /= np.sum(weights, axis=0)
         for i in range(nvars):
             var = Variable(i, dsize[i])
             self.variables.append(var)
         for i in range(ncomponents):
-            bn = BN() 
-            bn.setVars(self.variables)
-            self.clts.append(bn)
-        cdef double laplace = 1.0/ncomponents
+            cn = CN() 
+            cn.setVars(self.variables)
+            self.cns.append(cn)
         for it in range(num_iter):
+            print("EM iteration", it)
             #M-Step
             self.prob_mixture = np.sum(weights, axis=1)/np.sum(weights)
             #self.prob_mixture /= np.sum(self.prob_mixture)
             for i in range(ncomponents):
                 if it % 10 == 0:
-                    self.clts[i].learnCLT(data, weights[i, :], True, True, laplace)
+                    self.cns[i].learn(train, valid, weights[i, :], prune=True, max_depth=3, learn_struct=True, is_component=True, laplace=laplace)
                 else:
-                    self.clts[i].learnCLT(data, weights[i, :], False, True, laplace)
-
+                    self.cns[i].learn(train, valid, weights[i, :], prune=False, max_depth=3, learn_struct=False, is_component=True, laplace=laplace)
             #E-Step
             for i in range(ncomponents):
                 for j in range(nexamples):
-                    weights[i][j] = self.prob_mixture[i]*self.clts[i].getProbability(data[j, :])
+                    weights[i][j] = self.prob_mixture[i]*self.cns[i].getProbability(train[j, :])
             weights /= np.sum(weights, axis=0)
     
-    def learnEM(self, cnp.ndarray[int, ndim=2] data, int ncomponents=10, int num_iter=100):
-        self._learnEM(data, ncomponents, num_iter)
+    def learnEM(self, cnp.ndarray[int, ndim=2] train, cnp.ndarray[int, ndim=2] valid, int ncomponents=10, int num_iter=100):
+        self._learnEM(train, valid, ncomponents, num_iter)
 
     '''
     cdef void _learnRF(self, cnp.ndarray[int, ndim=2] train, cnp.ndarray[int, ndim=2] valid, int ncomponents, double r):
@@ -86,7 +86,7 @@ cdef class MT:
         cdef double lprob = 0.0
         cdef int i
         for i in range(self.ncomponents):
-            lprob += np.exp(np.log(self.prob_mixture[i])+self.clts[i].getLogProbability(example))
+            lprob += np.exp(np.log(self.prob_mixture[i])+self.cns[i].getLogProbability(example))
         return np.log(lprob)
         
     def getLogProbability(self, cnp.ndarray[int, ndim=1] example):
@@ -119,8 +119,10 @@ cdef class MT:
 
     def write(self, outfilename):
         fw = open(outfilename, "w")
-        fw.write("MT\n")
-        cdef int nvars = len(self.variables), i, ncomponents = self.ncomponents, j, nfunctions, k
+        fw.write("MCN\n")
+        cdef int nvars, i, ncomponents
+        nvars = len(self.variables)
+        ncomponents = self.ncomponents
         fw.write(str(ncomponents)+" "+str(nvars)+"\n")
         for i in range(nvars):
             fw.write(str(self.variables[i].d)+" ")
@@ -129,27 +131,12 @@ cdef class MT:
             fw.write("{0:.3f} ".format(self.prob_mixture[i]))
         fw.write("\n")
         for i in range(ncomponents):
-            clt = self.clts[i]
-            clt_functions = clt.getFunctions()
-            nfunctions = len(clt_functions)
-            fw.write(str(nfunctions)+"\n")
-            for j in range(nfunctions):
-                vars_ = clt_functions[j].getVars()
-                fw.write(str(len(vars_))+" ")
-                for k in range(len(vars_)):
-                    fw.write(str(vars_[k].id)+" ")
-                fw.write(str(clt_functions[j].getCPTVar())+"\n")
-            for j in range(nfunctions):
-                potentials_ = clt_functions[j].getPotential()
-                fw.write(str(len(potentials_))+"\n")
-                for k in range(len(potentials_)):
-                    fw.write("{0:.3f} ".format(potentials_[k]))
-                fw.write("\n")
-    
+            self.cns[i].writeCNode(self.cns[i].getRoot(), fw)
+
     def read(self, infilename):
         fr = open(infilename, "r")
         line = fr.readline()
-        if "MT" != line[:(len(line)-1)]:
+        if "MCN" != line[:(len(line)-1)]:
             print("Invalid format")
             sys.exit(0)
         cdef int nvars, i, j, k, ncomponents, nfunctions 
@@ -164,25 +151,7 @@ cdef class MT:
         line = fr.readline()
         self.prob_mixture = np.array(line[:(len(line)-2)].split(" "), dtype=float)
         for i in range(ncomponents):
-            bn = BN() 
-            bn.setVars(self.variables)
-            line = fr.readline()
-            nfunctions = int(line[:(len(line)-1)])
-            bn_functions = []
-            for j in range(nfunctions):
-                func = Function()
-                line = fr.readline()
-                func_var_params = np.array(line[:(len(line)-1)].split(" "), int)
-                func.setCPTVar(func_var_params[func_var_params.shape[0]-1])
-                func_vars = []
-                for k in range(func_var_params[0]):
-                    func_vars.append(self.variables[func_var_params[k+1]])
-                func.setVars(func_vars)
-                bn_functions.append(func)
-            for j in range(nfunctions):
-                fr.readline()
-                line = fr.readline()
-                bn_functions[j].setPotential(np.array(line[:(len(line)-2)].split(" "), dtype=float))
-            bn.setFunctions(bn_functions)
-            self.clts.append(bn)
-
+            cn = CN()
+            cn.setVars(self.variables)
+            cn.setRoot(cn.readCNode(fr))
+            self.cns.append(cn)

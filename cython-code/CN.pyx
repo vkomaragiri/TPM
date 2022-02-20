@@ -3,7 +3,7 @@ cimport numpy as cnp
 cimport cython 
 from libcpp cimport bool
 from Variable import Variable
-from Util import computeMI, computeEntropy
+from Util import computeMI, computeEntropy, getProb
 from BN import BN
 from CNode import CNode
 import sys 
@@ -28,14 +28,14 @@ cdef class CN:
     def termination_condition(self, int nexamples, int depth, double entropy, int nfeatures, int max_depth):
         return self._termination_condition(nexamples, depth, entropy, nfeatures, max_depth)
 
-    cdef object _learnCNode(self, cnp.ndarray[int, ndim=2] data, int depth, cnp.ndarray[int, ndim=1] features, int max_depth):
+    cdef object _learnCNode(self, cnp.ndarray[int, ndim=2] data, cnp.ndarray[double, ndim=1] data_weights, int depth, cnp.ndarray[int, ndim=1] features, int max_depth, double laplace):
         if features.shape[0] <= 0 or data.shape[0] <= 0:
             return None
         cnode = CNode()
         cnode.features = features
         cdef cnp.ndarray[double, ndim=2] mi 
         cdef list cur_variables = list(np.array(self.variables)[features])
-        mi, pxy, px = computeMI(cur_variables, data[:,features])
+        mi, pxy, px = computeMI(cur_variables, data[:,features], data_weights, laplace)
         cdef int split_ind, split_features_ind, i, j
         cdef cnp.ndarray[int, ndim=1] new_features
         cdef double entropy = computeEntropy(px)
@@ -47,7 +47,7 @@ cdef class CN:
             for j in range(features.shape[0]):
                 dct[features[j]] = j
             cnode.clt.setVarIdInd(dct)
-            cnode.clt.learnCLT(data=data[:, features], learn_struct=True, is_component=True, mi=mi, px=px, pxy=pxy)
+            cnode.clt.learnCLT(data=data[:, features], weights=data_weights, learn_struct=True, is_component=True, mi=mi, px=px, pxy=pxy, laplace=laplace)
         else:
             split_ind = np.argmax(np.sum(mi, axis=1))
             split_features_ind = features[split_ind]
@@ -56,18 +56,34 @@ cdef class CN:
             cnode.child_weights = px[split_ind]
             new_features = np.delete(features, split_ind)
             for i in range(self.variables[split_features_ind].d):
-                cnode.children.append(self._learnCNode(data[data[:, split_features_ind ] == i, :], depth+1, new_features, max_depth))
+                indices = data[:, split_features_ind ] == i
+                cnode.children.append(self._learnCNode(data[indices, :], data_weights[indices], depth+1, new_features, max_depth, laplace))
         return cnode
 
-    def learnCNode(self, cnp.ndarray[int, ndim=2] data, int depth, cnp.ndarray[int, ndim=1] features, int max_depth):
-        return self._learnCNode(data, depth, features, max_depth)
+    def learnCNode(self, cnp.ndarray[int, ndim=2] data, cnp.ndarray[double, ndim=1] data_weights, int depth, cnp.ndarray[int, ndim=1] features, int max_depth, double laplace):
+        return self._learnCNode(data, data_weights, depth, features, max_depth, laplace)
 
-    cdef object _pruneCNode(self, object nd, cnp.ndarray[int, ndim=2] train, cnp.ndarray[int, ndim=2] valid):
+    cdef object _updateCNode(self, object nd, cnp.ndarray[int, ndim=2] data, cnp.ndarray[double, ndim=1] weights, double laplace):
+        if nd == None:
+            return nd
+        if nd.node_type == 0:
+            nd.child_weights = getProb(data, nd.id, self.variables[nd.id].d, weights, laplace)
+            for i in range(self.variables[nd.id].d):
+                indices = data[:, nd.id] == i
+                nd.children[i] = self._updateCNode(nd.children[i], data[indices, :], weights[indices], laplace)
+        elif nd.node_type == 1:
+            nd.clt.learnCLT(data[:, nd.features], weights, learn_struct=False, is_component=True, laplace=laplace)
+        return nd
+
+    def updateCNode(self, object nd, cnp.ndarray[int, ndim=2] data, cnp.ndarray[double, ndim=1] weights, double laplace):
+        return self._updateCNode(nd, data, weights, laplace)
+
+    cdef object _pruneCNode(self, object nd, cnp.ndarray[int, ndim=2] train, cnp.ndarray[int, ndim=2] valid, double laplace):
         if nd == None or nd.node_type == 1:
             return nd
         cdef int i
         for i in range(len(nd.children)):
-            nd.children[i] = self._pruneCNode(nd.children[i], train, valid)
+            nd.children[i] = self._pruneCNode(nd.children[i], train, valid, laplace)
         cdef double curr_ll, new_ll
         cur_ll = self.getLLScore(valid)
         nd.clt = BN()
@@ -75,34 +91,45 @@ cdef class CN:
         cdef list cur_variables = list(np.array(self.variables)[cur_features])
         nd.clt.setVars(cur_variables)
         nd.node_type = 1
-        nd.clt.learnCLT(train[:,cur_features], learn_struct=True, is_component=True)
+        dct = {}
+        for j in range(nd.features.shape[0]):
+            dct[nd.features[j]] = j
+        nd.clt.setVarIdInd(dct)
+        nd.clt.learnCLT(train[:,cur_features], learn_struct=True, is_component=True, laplace=laplace)
         new_ll = self.getLLScore(valid)
         if new_ll < cur_ll:
             nd.clt = None
             nd.node_type = 0
         return nd
 
-    def pruneCNode(self, object nd, cnp.ndarray[int, ndim=2] train, cnp.ndarray[int, ndim=2] valid):
-        return self._pruneCNode(nd, train, valid)
+    def pruneCNode(self, object nd, cnp.ndarray[int, ndim=2] train, cnp.ndarray[int, ndim=2] valid, double laplace):
+        return self._pruneCNode(nd, train, valid, laplace)
 
-    cdef void _learn(self, cnp.ndarray[int, ndim=2] train, cnp.ndarray[int, ndim=2] valid, bool prune, int max_depth):
+    cdef void _learn(self, cnp.ndarray[int, ndim=2] train, cnp.ndarray[int, ndim=2] valid, cnp.ndarray[double, ndim=1] train_weights, bool prune, int max_depth, bool is_component, double laplace):
         print("Learning Cutset Network")
         cdef cnp.ndarray[int, ndim=1] dsize = np.max(train, axis = 0)+1
         cdef int nexamples = train.shape[0]
         cdef int nvars = train.shape[1]
-        for i in range(nvars):
-            var = Variable(i, dsize[i])
-            self.variables.append(var)
+        if is_component==False:
+            for i in range(nvars):
+                var = Variable(i, dsize[i])
+                self.variables.append(var)
+        nvars = len(self.variables)
         cdef cnp.ndarray[int, ndim=1] features = np.arange(nvars, dtype=np.int32)
-        self.root = self.learnCNode(train, 0, features, max_depth)
+        self.root = self.learnCNode(train, train_weights, 0, features, max_depth, laplace)
         print("Log-likelihood score on valid data:", self.getLLScore(valid))
         if prune:
             print("Performing bottom-up pruning on Cutset Network")
-            self.root = self.pruneCNode(self.root, train, valid)
+            self.root = self.pruneCNode(self.root, train, valid, laplace)
             print("Log-likelihood score on valid data:", self.getLLScore(valid))
 
-    def learn(self, cnp.ndarray[int, ndim=2] train, cnp.ndarray[int, ndim=2] valid, bool prune=True, int max_depth=10):
-        self._learn(train, valid, prune, max_depth)
+    def learn(self, cnp.ndarray[int, ndim=2] train, cnp.ndarray[int, ndim=2] valid, cnp.ndarray[double, ndim=1] train_weights = np.array([]), bool prune=True, int max_depth=10, bool learn_struct=True, bool is_component=False, double laplace=1.0):
+        if train_weights.shape[0] == 0:
+            train_weights = np.ones(train.shape[0])
+        if learn_struct == True:
+            self._learn(train, valid, train_weights, prune, max_depth, is_component, laplace)
+        else:
+            self.root = self.updateCNode(self.root, train, train_weights, laplace)
     
     cdef double _getLogProbabilityCNode(self, object nd, cnp.ndarray[int, ndim=1] example, double out):
         cdef int child_ind
@@ -226,9 +253,26 @@ cdef class CN:
             self.variables.append(var)
         self.root = self.readCNode(fr)
 
-    
+    cdef void _setVars(self, vars):
+        self.variables = vars
 
-    
-        
+    def setVars(self, vars):
+        self._setVars(vars)
 
-        
+    cdef list _getVars(self):
+        return self.variables
+
+    def getVars(self):
+        return self._getVars()
+
+    cdef object _getRoot(self):
+        return self.root
+
+    def getRoot(self):
+        return self._getRoot()
+    
+    cdef void _setRoot(self, object nd):
+        self.root = nd
+
+    def setRoot(self, object nd):
+        self._setRoot(nd)

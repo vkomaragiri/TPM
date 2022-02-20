@@ -134,7 +134,6 @@ def computePxy(list variables, cnp.ndarray[int, ndim=2] data, cnp.ndarray[double
         weights = np.ones(data.shape[0])
     return _computePxy(variables, data, weights, laplace)
 
-
 @cython.boundscheck(False)  # Deactivate bounds checking
 @cython.wraparound(False)   # Deactivate negative indexing.
 def normalizeDim2(cnp.ndarray[int, ndim=2] data):
@@ -142,13 +141,16 @@ def normalizeDim2(cnp.ndarray[int, ndim=2] data):
 
 @cython.boundscheck(False)  # Deactivate bounds checking
 @cython.wraparound(False)   # Deactivate negative indexing.
-def updateChowLiuCPT(func, cnp.ndarray[int, ndim=2]data, cnp.ndarray[double, ndim=1] weights, double laplace):
+def updateChowLiuCPT(func, cnp.ndarray[int, ndim=2]data, cnp.ndarray[double, ndim=1] weights, double laplace, dict var_id_ind_map):
     cdef int i, d
     cdef int cpt_var_ind
     variables = func.getVars()
     if len(variables) == 1:
         var = variables[0]
-        func.setPotential(getProb(data, var.id, var.d, weights, laplace))
+        if var_id_ind_map == {}:
+            func.setPotential(getProb(data, var.id, var.d, weights, laplace))
+        else:
+            func.setPotential(getProb(data, var_id_ind_map[var.id], var.d, weights, laplace))
     else:
         cpt_var_ind = func.getCPTVar()
         u = []
@@ -159,8 +161,14 @@ def updateChowLiuCPT(func, cnp.ndarray[int, ndim=2]data, cnp.ndarray[double, ndi
         else:
             u = variables[0]
             v = variables[1]
-        pxy = getPairwiseProb(data, u.id, v.id, u.d, v.d, weights, laplace)
-        px = getProb(data, u.id, u.d, weights, laplace)
+        pxy = []
+        px = []
+        if var_id_ind_map == {}:
+            pxy = getPairwiseProb(data, u.id, v.id, u.d, v.d, weights, laplace)
+            px = getProb(data, u.id, u.d, weights, laplace)
+        else:
+            pxy = getPairwiseProb(data, var_id_ind_map[u.id], var_id_ind_map[v.id], u.d, v.d, weights, laplace)
+            px = getProb(data, var_id_ind_map[u.id], u.d, weights, laplace)
         d = len(func.getPotential())
         potentials = np.zeros(d)
         for i in range(d):
@@ -203,3 +211,61 @@ def printVarVector(variables):
     print("tval:")
     for i in range(len(variables)):
         print "{0:d} ".format(variables[i].tval),
+
+@cython.boundscheck(False)  # Deactivate bounds checking
+@cython.wraparound(False)   # Deactivate negative indexing.
+cdef list _multiplyBucket(list bucket):
+    cdef int i, nfunctions, j 
+    nfunctions = len(bucket)
+    cdef list bucket_vars = []
+    cdef double[:] bucket_potential
+    if nfunctions == 1:
+        bucket_vars = bucket[0].getVars()
+        bucket_potential = bucket[0].getPotential()
+    else:
+        bucket_vars = []
+        for i in range(nfunctions):
+            func = bucket[i]
+            temp_vars = func.getVars()
+            printVarVector(temp_vars)
+            for j in range(len(temp_vars)):
+                if temp_vars[j] not in bucket_vars:
+                    bucket_vars.append(temp_vars[j])
+        d = getDomainSize(bucket_vars)
+        bucket_potential = np.zeros(d)
+        printVarVector(bucket_vars)
+        for i in range(d):
+            setAddr(bucket_vars, i)
+            for j in range(nfunctions):
+                func = bucket[j]
+                temp_vars = func.getVars()
+                bucket_potential[i] += np.log(func.getPotential()[getAddr(temp_vars)])
+        bucket_potential = np.exp(bucket_potential)
+    return [bucket_vars, bucket_potential]
+            
+@cython.boundscheck(False)  # Deactivate bounds checking
+@cython.wraparound(False)   # Deactivate negative indexing.
+def multiplyBucket(list bucket):
+    return _multiplyBucket(bucket)
+
+@cython.boundscheck(False)  # Deactivate bounds checking
+@cython.wraparound(False)   # Deactivate negative indexing.
+cdef list _elimVarBucket(list bucket_vars, double[:] bucket_potential, object var):
+    cdef int i, j , marg_d
+    marg_vars = []
+    for i in range(len(bucket_vars)):
+        marg_vars.append(bucket_vars[i])
+    marg_vars.remove(var)
+    marg_d = bucket_potential.shape[0]/var.d
+    marg_potential = np.zeros(marg_d)
+    for i in range(var.d):
+        var.tval = i 
+        for j in range(marg_d):
+            setAddr(marg_vars, j)
+            marg_potential[j] += bucket_potential[getAddr(bucket_vars)]
+    return [marg_vars, marg_potential]
+            
+@cython.boundscheck(False)  # Deactivate bounds checking
+@cython.wraparound(False)   # Deactivate negative indexing.
+def elimVarBucket(list bucket_vars, double[:] bucket_potential, object elim_var):
+    return _elimVarBucket(bucket_vars, bucket_potential, elim_var)

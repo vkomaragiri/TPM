@@ -1,7 +1,7 @@
 import numpy as np 
 cimport numpy as cnp
 from Variable import Variable
-from Util import getDomainSize
+from Util import getDomainSize, setAddr, getAddr
 cimport cython 
 
 @cython.boundscheck(False)  # Deactivate bounds checking
@@ -52,7 +52,32 @@ cdef class Function:
     def getCPTVar(self):
         return self._getCPTVar()
 
-        
+    cdef object _instantiateEvid(self):
+        out = Function()
+        cdef int i, j, d_non_evid, d, nvars
+        nvars = len(self.variables)
+        non_evid_vars = []
+        for i in range(nvars):
+            if self.variables[i].isEvid():
+                self.variables[i].tval = self.variables[i].val 
+            else:
+                non_evid_vars.append(self.variables[i])
+        out.setVars(non_evid_vars)
+        if len(non_evid_vars) == nvars:
+            out.setPotential(np.asarray(self.potentials))
+            out.setCPTVar(self.cpt_var_ind)
+        else:
+            d = getDomainSize(non_evid_vars)
+            temp = -1*np.ones(d)
+            for i in range(d):
+                setAddr(non_evid_vars, i)
+                temp[i] = self.potentials[getAddr(self.variables)]
+            out.setPotential(temp)
+        return out        
+
+
+    def instantiateEvid(self):
+        return self._instantiateEvid()
 
 
 

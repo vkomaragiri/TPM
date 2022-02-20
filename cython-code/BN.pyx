@@ -5,7 +5,7 @@ from scipy.sparse import csr_matrix
 from scipy.sparse.csgraph import minimum_spanning_tree, depth_first_tree, connected_components
 from Variable import Variable
 from Function import Function
-from Util import getDirectedST, getDomainSize, setAddr, getAddr, getPairwiseProb, getProb, updateChowLiuCPT, computeMI, printVarVector
+from Util import getDirectedST, getDomainSize, setAddr, getAddr, getPairwiseProb, getProb, updateChowLiuCPT, computeMI, printVarVector, multiplyBucket, elimVarBucket
 cimport cython 
 from libcpp cimport bool
 import sys
@@ -17,17 +17,27 @@ cdef class BN:
     cdef list variables
     cdef list functions
     cdef dict var_id_ind_map
+    
+    cdef int[:] order
+    cdef int[:] var_pos
+    cdef double pe
+    cdef bool upward_pass 
+    cdef bool downward_pass
+    cdef list buckets
 
     def __init__(self):
         self.variables = []
         self.functions = []
         self.var_id_ind_map = {}
 
+        self.pe = 1.0
+        self.upward_pass = False 
+        self.downward_pass = False
+
     cdef void _learnCLT(self, cnp.ndarray[int, ndim = 2] data, cnp.ndarray[double, ndim=1] weights, bool learn_struct, bool is_component, double laplace, cnp.ndarray[double, ndim=2] mi, list px, list pxy):
         cdef cnp.ndarray[int, ndim=1] dsize = np.max(data, axis = 0)+1
         cdef int nvars
         cdef int i, d, j, u, v
-
         if is_component == False:
             for i in range(data.shape[1]):
                 var = Variable(i, dsize[i])
@@ -44,7 +54,7 @@ cdef class BN:
                 if u == v:
                     func.setVars([self.variables[u]])
                     func.setPotential(px[u])
-                    func.setCPTVar(self.variables[u].id)
+                    func.setCPTVar(0)
                 else:
                     func.setVars([self.variables[u], self.variables[v]])
                     func.setCPTVar(1)
@@ -58,8 +68,8 @@ cdef class BN:
             #add chow-liu graphs code later
         else:
             for i in range(len(self.functions)):
-                updateChowLiuCPT(self.functions[i], data, weights, laplace)
-        
+                updateChowLiuCPT(self.functions[i], data, weights, laplace, self.var_id_ind_map)
+  
     def learnCLT(self, cnp.ndarray[int, ndim = 2] data, cnp.ndarray[double, ndim=1] weights=np.array([]), bool learn_struct=True, bool is_component=False, double laplace=1.0, cnp.ndarray[double, ndim=2] mi = np.array([[]]), list px = [], list pxy = []):
         self._learnCLT(data, weights, learn_struct, is_component, laplace, mi, px, pxy)
 
@@ -107,6 +117,12 @@ cdef class BN:
 
     def setVarIdInd(self, dct):
         self._setVarIdInd(dct)
+
+    cdef dict _getVarIdInd(self):
+        return self.var_id_ind_map
+
+    def getVarIdInd(self):
+        return self._getVarIdInd()
 
     cdef list _getFunctions(self):
         return self.functions
@@ -219,3 +235,78 @@ cdef class BN:
             line = fr.readline()
             self.functions[i].setPotential(np.array(line[:(len(line)-2)].split(" "), dtype=float))
 
+    cdef void _getOrder(self, long order_type):
+        cdef int nvars = len(self.variables)
+        if order_type == 0: #Random order
+            temp = np.arange(nvars, dtype=np.int32)
+            np.random.shuffle(temp)
+            self.order = temp
+        elif order_type == 1: #Min-degree
+            self.order = -1*np.ones(nvars, dtype=np.int32)
+        elif order_type == 2: #Min-fill
+            self.order = -1*np.ones(nvars, dtype=np.int32)
+        print(order_type, np.array(self.order))
+    
+    def getOrder(self, long order_type):
+        self._getOrder(order_type)
+
+    cdef void _initBTP(self):
+        self.getOrder(0)
+        cdef cnp.ndarray[int, ndim=1] var_pos
+        cdef int i, bucket_ind, j, temp_nvars
+        cdef int nvars = len(self.variables)
+        cdef int nfunctions = len(self.functions)
+        self.var_pos = -1*np.ones(nvars, dtype=np.int32)
+        self.buckets = []
+        for i in range(nvars):
+            self.var_pos[self.order[i]] = i
+            self.buckets.append([])
+        bucket_ind = nfunctions
+        for i in range(nfunctions):
+            newf = self.functions[i].instantiateEvid()
+            newf_vars = newf.getVars()
+            temp_nvars = len(newf_vars)
+            if temp_nvars == 0:
+                pe *= newf.getPotential()[0]
+            bucket_ind = np.min([int(self.var_pos[newf_vars[j].id]) for j in range(temp_nvars)])
+            self.buckets[bucket_ind].append(newf)
+
+    def initBTP(self):
+        self._initBTP()
+
+    cdef void _performUpwardPass(self): #leaves to root
+        if self.upward_pass == True:
+            return
+        self.initBTP()
+        cdef int i 
+        for i in range(len(self.order)):
+            if len(self.buckets[i]) == 0:
+                continue
+            bucket_vars, bucket_potential = multiplyBucket(self.buckets[i])
+            print("Bucket")
+            printVarVector(bucket_vars)
+            print(bucket_potential)
+            marg_vars, marg_potential = elimVarBucket(bucket_vars, bucket_potential, self.variables[self.order[i]])
+            if len(marg_vars) == 0:
+                pe *= marg_potential[0]
+                continue 
+            bucket_ind = np.min([self.var_pos[bucket_vars[j].id] for j in range(len(bucket_vars))])
+            func = Function()
+            func.setVars(marg_vars)
+            func.setPotential(marg_potential)
+            self.buckets[bucket_ind].append(func)
+        self.upward_pass = True 
+
+    def performUpwardPass(self):
+        self._performUpwardPass()
+
+    cdef double _getPE(self):
+        if self.upward_pass == True:
+            return self.pe 
+        self.performUpwardPass()
+        return self.pe
+        
+    def getPE(self):
+        return self._getPE()
+    
+    
