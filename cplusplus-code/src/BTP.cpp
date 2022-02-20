@@ -117,7 +117,7 @@ void BTP::upward_pass(){ //leaves to root
                 pe *= sum[0];
                 continue;
             }
-            pe *= Utils::normalize1d(sum);
+            //pe *= Utils::normalize1d(sum);
             Function newf(mar_variables, sum);
             int bucket_loc = buckets.size();
             if(varid_ind.empty()){
