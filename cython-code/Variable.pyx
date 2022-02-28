@@ -23,6 +23,7 @@ cdef class Variable:
     cpdef void setValue(self, int v):
         if v >= 0 and v < self.d:
             self.val = v
+        self.is_evid = True
     
     cpdef int getValue(self):
         return self.val

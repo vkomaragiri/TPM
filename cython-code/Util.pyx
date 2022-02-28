@@ -211,7 +211,8 @@ def printVarVector(variables):
     print("tval:")
     for i in range(len(variables)):
         print "{0:d} ".format(variables[i].tval),
-
+    print("\n")
+    
 @cython.boundscheck(False)  # Deactivate bounds checking
 @cython.wraparound(False)   # Deactivate negative indexing.
 cdef list _multiplyBucket(list bucket):
@@ -226,14 +227,10 @@ cdef list _multiplyBucket(list bucket):
         bucket_vars = []
         for i in range(nfunctions):
             func = bucket[i]
-            temp_vars = func.getVars()
-            printVarVector(temp_vars)
-            for j in range(len(temp_vars)):
-                if temp_vars[j] not in bucket_vars:
-                    bucket_vars.append(temp_vars[j])
+            bucket_vars.extend(func.getVars())
+        bucket_vars = list(set(bucket_vars))
         d = getDomainSize(bucket_vars)
         bucket_potential = np.zeros(d)
-        printVarVector(bucket_vars)
         for i in range(d):
             setAddr(bucket_vars, i)
             for j in range(nfunctions):
@@ -250,16 +247,20 @@ def multiplyBucket(list bucket):
 
 @cython.boundscheck(False)  # Deactivate bounds checking
 @cython.wraparound(False)   # Deactivate negative indexing.
-cdef list _elimVarBucket(list bucket_vars, double[:] bucket_potential, object var):
-    cdef int i, j , marg_d
+cdef list _elimVarBucket(list bucket_vars, double[:] bucket_potential, list elim_vars):
+    cdef int i, j , marg_d, elim_d
     marg_vars = []
     for i in range(len(bucket_vars)):
         marg_vars.append(bucket_vars[i])
-    marg_vars.remove(var)
-    marg_d = bucket_potential.shape[0]/var.d
+    marg_d = bucket_potential.shape[0]
+    for i in range(len(elim_vars)):
+        var = elim_vars[i]
+        marg_vars.remove(var)
+        marg_d /= var.d
     marg_potential = np.zeros(marg_d)
-    for i in range(var.d):
-        var.tval = i 
+    elim_d = int(bucket_potential.shape[0]/marg_d)
+    for i in range(elim_d):
+        setAddr(elim_vars, i)
         for j in range(marg_d):
             setAddr(marg_vars, j)
             marg_potential[j] += bucket_potential[getAddr(bucket_vars)]
@@ -267,5 +268,5 @@ cdef list _elimVarBucket(list bucket_vars, double[:] bucket_potential, object va
             
 @cython.boundscheck(False)  # Deactivate bounds checking
 @cython.wraparound(False)   # Deactivate negative indexing.
-def elimVarBucket(list bucket_vars, double[:] bucket_potential, object elim_var):
-    return _elimVarBucket(bucket_vars, bucket_potential, elim_var)
+def elimVarBucket(list bucket_vars, double[:] bucket_potential, list elim_vars):
+    return _elimVarBucket(bucket_vars, bucket_potential, elim_vars)

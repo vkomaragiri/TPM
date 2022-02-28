@@ -186,3 +186,41 @@ cdef class MT:
             bn.setFunctions(bn_functions)
             self.clts.append(bn)
 
+    def setEvidence(self, int id, int val):
+        self.variables[id].setValue(val)
+
+    cdef void _initBTP(self):
+        cdef int i 
+        for i in range(self.ncomponents):
+            self.clts[i].initBTP()
+
+    def initBTP(self):
+        self._initBTP()
+
+    cdef double _getPE(self):
+        cdef double pe = 0.0 
+        cdef int i 
+        for i in range(self.ncomponents):
+            pe += self.prob_mixture[i]*self.clts[i].getPE()
+        return pe 
+
+    def getPE(self):
+        return self._getPE()
+
+    cdef list _getVarMarginals(self):
+        cdef int i, nvars, j 
+        nvars = len(self.variables)
+        marginals = []
+        post_prob = np.zeros(self.ncomponents)
+        for i in range(self.ncomponents):
+            post_prob[i] = self.clts[i].getPE()*self.prob_mixture[i]
+            marginals.append(post_prob[i]*self.clts[i].getVarMarginals())
+        post_prob /= np.sum(post_prob)
+        marginals = np.sum(marginals, axis=0)
+        for i in range(nvars):
+            temp = marginals[i]
+            marginals[i] = list(temp/np.sum(temp))
+        return list(marginals)
+
+    def getVarMarginals(self):
+        return self._getVarMarginals()

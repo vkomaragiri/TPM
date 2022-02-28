@@ -24,15 +24,18 @@ cdef class BN:
     cdef bool upward_pass 
     cdef bool downward_pass
     cdef list buckets
+    cdef int[:, :] messages
+
 
     def __init__(self):
         self.variables = []
         self.functions = []
         self.var_id_ind_map = {}
 
-        self.pe = 1.0
+        self.pe = 0.0
         self.upward_pass = False 
         self.downward_pass = False
+
 
     cdef void _learnCLT(self, cnp.ndarray[int, ndim = 2] data, cnp.ndarray[double, ndim=1] weights, bool learn_struct, bool is_component, double laplace, cnp.ndarray[double, ndim=2] mi, list px, list pxy):
         cdef cnp.ndarray[int, ndim=1] dsize = np.max(data, axis = 0)+1
@@ -245,7 +248,6 @@ cdef class BN:
             self.order = -1*np.ones(nvars, dtype=np.int32)
         elif order_type == 2: #Min-fill
             self.order = -1*np.ones(nvars, dtype=np.int32)
-        print(order_type, np.array(self.order))
     
     def getOrder(self, long order_type):
         self._getOrder(order_type)
@@ -267,7 +269,8 @@ cdef class BN:
             newf_vars = newf.getVars()
             temp_nvars = len(newf_vars)
             if temp_nvars == 0:
-                pe *= newf.getPotential()[0]
+                self.pe += np.log(newf.getPotential()[0])
+                continue
             bucket_ind = np.min([int(self.var_pos[newf_vars[j].id]) for j in range(temp_nvars)])
             self.buckets[bucket_ind].append(newf)
 
@@ -277,25 +280,26 @@ cdef class BN:
     cdef void _performUpwardPass(self): #leaves to root
         if self.upward_pass == True:
             return
+        edges = []
         self.initBTP()
         cdef int i 
         for i in range(len(self.order)):
             if len(self.buckets[i]) == 0:
                 continue
             bucket_vars, bucket_potential = multiplyBucket(self.buckets[i])
-            print("Bucket")
-            printVarVector(bucket_vars)
-            print(bucket_potential)
-            marg_vars, marg_potential = elimVarBucket(bucket_vars, bucket_potential, self.variables[self.order[i]])
+            marg_vars, marg_potential = elimVarBucket(bucket_vars, bucket_potential, [self.variables[self.order[i]]])
             if len(marg_vars) == 0:
-                pe *= marg_potential[0]
+                self.pe += np.log(marg_potential[0])
                 continue 
-            bucket_ind = np.min([self.var_pos[bucket_vars[j].id] for j in range(len(bucket_vars))])
+            bucket_ind = np.min([self.var_pos[marg_vars[j].id] for j in range(len(marg_vars))])
+            edges.append(np.array([i, bucket_ind, len(self.buckets)], dtype=np.int32))
             func = Function()
             func.setVars(marg_vars)
             func.setPotential(marg_potential)
             self.buckets[bucket_ind].append(func)
+        self.messages = np.array(edges, dtype=np.int32)
         self.upward_pass = True 
+        self.pe = np.exp(self.pe)
 
     def performUpwardPass(self):
         self._performUpwardPass()
@@ -309,4 +313,72 @@ cdef class BN:
     def getPE(self):
         return self._getPE()
     
+    cdef void _performDownwardPass(self):
+        if self.downward_pass == True:
+            return 
+        cdef int i, child, par, msg_ind, j, k
+        cdef list msgs 
+        msgs = list(self.messages)
+        for i in range(len(self.messages)):
+            child, par, msg_ind = self.messages[i]
+            parent_functions = []
+            bucket = self.buckets[par]
+            parent_vars = []
+            sep_vars = []
+            for j in range(len(bucket)):
+                if j == msg_ind:
+                    sep_vars.append(bucket[j].getVars())
+                    continue
+                parent_vars.extend(bucket[j].getVars())
+                parent_functions.append(bucket[j])
+            temp_parent_vars, temp_parent_potential = multiplyBucket(parent_functions)
+            parent_vars = list(set(parent_vars))
+
+            elim_vars = list(set(parent_vars).difference(sep_vars))
+            marg_vars, marg_potential = elimVarBucket(temp_parent_vars, temp_parent_potential, elim_vars)
+            func = Function()
+            func.setVars(marg_vars)
+            func.setPotential(marg_potential)
+            msgs[i] = np.array(np.hstack([np.asarray(self.messages[i]), np.array([len(self.buckets[child])])]), dtype=np.int32)
+            self.buckets[child].append(func)
+        self.downward_pass = True
+        self.messages = np.asarray(msgs) 
+
+    def performDownwardPass(self):
+        self._performDownwardPass()
+
+    cdef double[:, :] _getVarMarginals(self):
+        if self.upward_pass == False:
+            self._performUpwardPass()
+        if self.downward_pass == False:
+            self._performDownwardPass() 
+        
+        cdef int i, nvars, j 
+        nvars = len(self.buckets)
+        marginals = [np.zeros(self.variables[i].d) for i in range(nvars)]
+        for i in range(nvars):
+            var = self.variables[self.order[i]]
+            if var.isEvid():
+                marginals[var.id][var.val] = 1.0
+            elif len(self.buckets[var.id]) == 0:
+                marginals[var.id] = (1.0/var.d)*np.ones(var.d)
+            else:
+                bucket_vars, bucket_potential = multiplyBucket(self.buckets[i])
+                #printVarVector(bucket_vars)
+                #printVarVector([var])
+                elim_vars = [bucket_vars[j] for j in range(len(bucket_vars))]
+                elim_vars.remove(var)
+                #printVarVector(bucket_vars)
+                #printVarVector(elim_vars)
+                marg_vars, marg_potential = elimVarBucket(bucket_vars, bucket_potential, elim_vars)
+                marginals[var.id] = marg_potential/np.sum(marg_potential)
+        cdef double[:, :] out
+        out = np.asarray(marginals)
+        return out
     
+    def getVarMarginals(self):
+        return self._getVarMarginals()
+    
+
+    def setEvidence(self, int id, int val):
+        self.variables[id].setValue(val)
