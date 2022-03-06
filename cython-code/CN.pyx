@@ -15,9 +15,14 @@ cdef class CN:
     cdef list variables 
     cdef object root
 
+    cdef bool upward_pass
+    cdef bool set_evid
+
     def __init__(self):
         self.variables = []
         self.root = None
+        self.upward_pass = False
+        self.set_evid = False
 
     cdef bool _termination_condition(self, int nexamples, int depth, double entropy, int nfeatures, int max_depth):
         if (nexamples < 10) or (depth >= max_depth) or (entropy < 0.01) or (nfeatures < 1):
@@ -276,3 +281,130 @@ cdef class CN:
 
     def setRoot(self, object nd):
         self._setRoot(nd)
+
+    def setEvidence(self, int id, int val):
+        self.variables[id].setValue(val)
+
+    cdef object _instantiateEvidNetworkCNode(self, object nd):
+        cdef int i 
+        cdef object var 
+        if nd != None:
+            if nd.node_type == 0:
+                var = self.variables[nd.id]
+                if var.isEvid() == True:
+                    for i in range(len(nd.children)):
+                        if i == var.val:
+                            nd.children[i] = self._instantiateEvidNetworkCNode(nd.children[i])
+                        else:
+                            nd.child_weights[i] = 0.0
+                else:
+                    for i in range(len(nd.children)):
+                        nd.children[i] = self._instantiateEvidNetworkCNode(nd.children[i])
+            else:
+                nd.clt.initBTP()
+        return nd
+
+    cdef void _instantiateEvidNetwork(self):
+        self.root = self._instantiateEvidNetworkCNode(self.root)
+        self.set_evid = True
+
+    def instantiateEvidNetwork(self):
+        self._instantiateEvidNetwork()
+
+    cdef void _performUpwardPassCNode(self, object nd):
+        cdef int i 
+        cdef object var 
+        cdef double temp
+        if nd != None:
+            if nd.node_type == 0:
+                var = self.variables[nd.id]
+                temp = 0.0
+                if var.isEvid():
+                    i = var.val
+                    child = nd.children[i]
+                    self._performUpwardPassCNode(child)
+                    if child == None:
+                        temp += nd.child_weights[i]
+                    else:
+                        temp += nd.child_weights[i]*child.val
+                else:
+                    for i in range(len(nd.children)):
+                        child = nd.children[i]
+                        self._performUpwardPassCNode(child)
+                        if child == None:
+                            temp += nd.child_weights[i]
+                        else:
+                            temp += nd.child_weights[i]*child.val
+                nd.val = temp
+            
+            else:
+                nd.val = nd.clt.getPE()
+        else:
+            return
+        
+    def performUpwardPassCNode(self, object nd):
+        self._performUpwardPassCNode(nd)
+
+    cdef void _performUpwardPass(self):
+        if self.upward_pass == True:
+            return 
+        if self.set_evid == False:
+            self._instantiateEvidNetwork()
+        self._performUpwardPassCNode(self.root)
+        self.upward_pass = True
+
+    def performUpwardPass(self):
+        self._performUpwardPass()
+
+    cdef double _getPE(self):
+        if self.upward_pass == False:
+            self._performUpwardPass()
+        return self.root.val 
+
+    def getPE(self):
+        return self._getPE()
+
+    cdef double[:, :] _getVarMarginalsCNode(self, object nd,  double[:, :] marginals):
+        cdef int i, nvars, j, k
+        if nd != None:
+            out = np.asarray(marginals)
+            if nd.node_type == 0:
+                if self.variables[nd.id].isEvid() == True:
+                    i = self.variables[nd.id].val 
+                    out[nd.id] = nd.child_weights[i]*np.asarray(self._getVarMarginalsCNode(nd.children[i], out)[nd.id])
+                else:
+                    all_child_marginals = []
+                    for i in range(len(nd.children)):
+                        all_child_marginals.append(np.asarray(self._getVarMarginalsCNode(nd.children[i], out), dtype=object))
+                    if len(all_child_marginals) > 0:
+                        out = np.asarray(np.sum(all_child_marginals, axis=0), dtype=np.float64)
+                    out[nd.id] = nd.child_weights
+            else:
+                print("Hello")
+                clt_marginals = np.asarray(nd.clt.getVarMarginals())
+                print("Bye")
+                clt_vars = nd.clt.getVars()
+                for i in range(len(clt_vars)):
+                    out[clt_vars[i].id] = clt_marginals[i]  
+            marginals = out
+        return marginals
+
+    def getVarMarginalsCNode(self, object nd, list marginals):
+        return self._getVarMarginalsCNode(nd, marginals)
+
+    cdef double[:, :] _getVarMarginals(self):
+        cdef int i, nvars, j 
+        nvars = len(self.variables)
+        marginals = np.asarray([np.zeros(self.variables[i].d) for i in range(nvars)])
+        if self.upward_pass == False:
+            self._performUpwardPass()
+        marginals = np.asarray(self._getVarMarginalsCNode(self.root, marginals))
+        print(type(marginals))
+        for i in range(nvars):
+            temp = np.sum(marginals[i])
+            marginals[i] /= temp
+        return marginals
+
+    def getVarMarginals(self):
+        return self._getVarMarginals()
+    

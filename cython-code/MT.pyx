@@ -207,8 +207,9 @@ cdef class MT:
     def getPE(self):
         return self._getPE()
 
-    cdef list _getVarMarginals(self):
+    cdef double[:, :] _getVarMarginals(self):
         cdef int i, nvars, j 
+        cdef double temp
         nvars = len(self.variables)
         marginals = []
         post_prob = np.zeros(self.ncomponents)
@@ -218,9 +219,11 @@ cdef class MT:
         post_prob /= np.sum(post_prob)
         marginals = np.sum(marginals, axis=0)
         for i in range(nvars):
-            temp = marginals[i]
-            marginals[i] = list(temp/np.sum(temp))
-        return list(marginals)
+            temp = np.sum(marginals[i])
+            marginals[i] /= temp
+        cdef double[:, :] out
+        out = marginals
+        return out
 
     def getVarMarginals(self):
         return self._getVarMarginals()

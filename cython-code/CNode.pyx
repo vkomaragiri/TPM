@@ -14,6 +14,8 @@ cdef class CNode:
     cdef public int node_type
     cdef public int[:] features
 
+    cdef public double val
+
     def __init__(self):
         self.id = -1
         self.child_weights = np.array([])
@@ -21,3 +23,4 @@ cdef class CNode:
         self.clt = None
         self.node_type = -1
         self.features = np.array([], dtype=np.int32)
+        self.val = -1

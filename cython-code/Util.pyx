@@ -204,15 +204,17 @@ def computeEntropy(list pxy):
 @cython.wraparound(False)   # Deactivate negative indexing.
 def printVarVector(variables):
     cdef int i
-    print("id: ")
+    #print("id: ")
     for i in range(len(variables)):
         print "{0:d} ".format(variables[i].id),
     print("\n")
+    '''
     print("tval:")
     for i in range(len(variables)):
         print "{0:d} ".format(variables[i].tval),
     print("\n")
-    
+    '''
+
 @cython.boundscheck(False)  # Deactivate bounds checking
 @cython.wraparound(False)   # Deactivate negative indexing.
 cdef list _multiplyBucket(list bucket):
@@ -249,6 +251,8 @@ def multiplyBucket(list bucket):
 @cython.wraparound(False)   # Deactivate negative indexing.
 cdef list _elimVarBucket(list bucket_vars, double[:] bucket_potential, list elim_vars):
     cdef int i, j , marg_d, elim_d
+    cdef cnp.ndarray[double, ndim=1] marg_potential
+    cdef list marg_vars
     marg_vars = []
     for i in range(len(bucket_vars)):
         marg_vars.append(bucket_vars[i])

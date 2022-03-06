@@ -9,6 +9,8 @@ from Util import getDirectedST, getDomainSize, setAddr, getAddr, getPairwiseProb
 cimport cython 
 from libcpp cimport bool
 import sys
+import traceback
+
 
 
 @cython.boundscheck(False)  # Deactivate bounds checking
@@ -30,7 +32,7 @@ cdef class BN:
     def __init__(self):
         self.variables = []
         self.functions = []
-        self.var_id_ind_map = {}
+        self.var_id_ind_map = None
 
         self.pe = 0.0
         self.upward_pass = False 
@@ -263,6 +265,7 @@ cdef class BN:
         for i in range(nvars):
             self.var_pos[self.order[i]] = i
             self.buckets.append([])
+
         bucket_ind = nfunctions
         for i in range(nfunctions):
             newf = self.functions[i].instantiateEvid()
@@ -271,7 +274,10 @@ cdef class BN:
             if temp_nvars == 0:
                 self.pe += np.log(newf.getPotential()[0])
                 continue
-            bucket_ind = np.min([int(self.var_pos[newf_vars[j].id]) for j in range(temp_nvars)])
+            if self.var_id_ind_map == None:
+                bucket_ind = np.min([int(self.var_pos[newf_vars[j].id]) for j in range(temp_nvars)])
+            else:
+                bucket_ind = np.min([int(self.var_pos[self.var_id_ind_map[newf_vars[j].id]]) for j in range(temp_nvars)])
             self.buckets[bucket_ind].append(newf)
 
     def initBTP(self):
@@ -282,25 +288,49 @@ cdef class BN:
             return
         edges = []
         self.initBTP()
+        
         cdef int i 
-        for i in range(len(self.order)):
-            if len(self.buckets[i]) == 0:
-                continue
-            bucket_vars, bucket_potential = multiplyBucket(self.buckets[i])
-            marg_vars, marg_potential = elimVarBucket(bucket_vars, bucket_potential, [self.variables[self.order[i]]])
-            if len(marg_vars) == 0:
-                self.pe += np.log(marg_potential[0])
-                continue 
-            bucket_ind = np.min([self.var_pos[marg_vars[j].id] for j in range(len(marg_vars))])
-            edges.append(np.array([i, bucket_ind, len(self.buckets)], dtype=np.int32))
-            func = Function()
-            func.setVars(marg_vars)
-            func.setPotential(marg_potential)
-            self.buckets[bucket_ind].append(func)
-        self.messages = np.array(edges, dtype=np.int32)
-        self.upward_pass = True 
-        self.pe = np.exp(self.pe)
-
+        if self.var_id_ind_map == None:
+            for i in range(len(self.order)):
+                if len(self.buckets[i]) == 0:
+                    continue
+                bucket_vars, bucket_potential = multiplyBucket(self.buckets[i])
+                marg_vars, marg_potential = elimVarBucket(bucket_vars, bucket_potential, [self.variables[self.order[i]]])
+                if len(marg_vars) == 0:
+                    self.pe += np.log(marg_potential[0])
+                    continue 
+                bucket_ind = np.min([self.var_pos[marg_vars[j].id] for j in range(len(marg_vars))])
+                edges.append(np.array([i, bucket_ind, len(self.buckets)], dtype=np.int32))
+                func = Function()
+                func.setVars(marg_vars)
+                func.setPotential(marg_potential)
+                self.buckets[bucket_ind].append(func)
+            self.messages = np.array(edges, dtype=np.int32)
+            self.upward_pass = True 
+            self.pe = np.exp(self.pe)
+        
+        else:
+            for i in range(len(self.order)):
+                if len(self.buckets[i]) == 0:
+                    continue
+                bucket_vars, bucket_potential = multiplyBucket(self.buckets[i])
+                marg_vars, marg_potential = elimVarBucket(bucket_vars, bucket_potential, [self.variables[self.order[i]]])
+                if len(marg_vars) == 0:
+                    self.pe += np.log(marg_potential[0])
+                    continue 
+                bucket_ind = np.min([self.var_pos[self.var_id_ind_map[marg_vars[j].id]] for j in range(len(marg_vars))])
+                edges.append(np.array([i, bucket_ind, len(self.buckets)], dtype=np.int32))
+                func = Function()
+                func.setVars(marg_vars)
+                func.setPotential(marg_potential)
+                self.buckets[bucket_ind].append(func)
+            edges = np.array(edges, dtype=np.int32)
+            if edges.shape[0] == 0:
+                edges = np.zeros((1, 1), dtype=np.int32)
+            self.messages = edges
+            self.upward_pass = True 
+            self.pe = np.exp(self.pe)   
+        
     def performUpwardPass(self):
         self._performUpwardPass()
 
@@ -313,14 +343,17 @@ cdef class BN:
     def getPE(self):
         return self._getPE()
     
-    cdef void _performDownwardPass(self):
+    cdef void _performDownwardPass(self): #root to leaves
         if self.downward_pass == True:
             return 
+        if self.upward_pass == False:
+            self._performUpwardPass()
         cdef int i, child, par, msg_ind, j, k
         cdef list msgs 
         msgs = list(self.messages)
-        for i in range(len(self.messages)):
+        for i in range(len(self.messages)-1, -1, -1):
             child, par, msg_ind = self.messages[i]
+            #print(child, par, msg_ind)
             parent_functions = []
             bucket = self.buckets[par]
             parent_vars = []
@@ -331,10 +364,12 @@ cdef class BN:
                     continue
                 parent_vars.extend(bucket[j].getVars())
                 parent_functions.append(bucket[j])
+            #print(len(multiplyBucket(parent_functions)))
             temp_parent_vars, temp_parent_potential = multiplyBucket(parent_functions)
             parent_vars = list(set(parent_vars))
 
             elim_vars = list(set(parent_vars).difference(sep_vars))
+            #print(len(elimVarBucket(temp_parent_vars, temp_parent_potential, elim_vars)))
             marg_vars, marg_potential = elimVarBucket(temp_parent_vars, temp_parent_potential, elim_vars)
             func = Function()
             func.setVars(marg_vars)
@@ -355,30 +390,39 @@ cdef class BN:
         
         cdef int i, nvars, j 
         nvars = len(self.buckets)
-        marginals = [np.zeros(self.variables[i].d) for i in range(nvars)]
+        marginals = [np.zeros(self.variables[i].d, dtype=float) for i in range(nvars)]
         for i in range(nvars):
             var = self.variables[self.order[i]]
             if var.isEvid():
-                marginals[var.id][var.val] = 1.0
-            elif len(self.buckets[var.id]) == 0:
-                marginals[var.id] = (1.0/var.d)*np.ones(var.d)
+                if self.var_id_ind_map == None:
+                    marginals[var.id][var.val] = 1.0
+                else:
+                    marginals[self.var_id_ind_map[var.id]][var.val] = 1.0
+            elif len(self.buckets[i]) == 0:
+                if self.var_id_ind_map == None:
+                    marginals[var.id] = (1.0/var.d)*np.ones(var.d)
+                else:
+                    marginals[var.id] = (1.0/var.d)*np.ones(var.d)
             else:
                 bucket_vars, bucket_potential = multiplyBucket(self.buckets[i])
-                #printVarVector(bucket_vars)
-                #printVarVector([var])
                 elim_vars = [bucket_vars[j] for j in range(len(bucket_vars))]
                 elim_vars.remove(var)
-                #printVarVector(bucket_vars)
-                #printVarVector(elim_vars)
                 marg_vars, marg_potential = elimVarBucket(bucket_vars, bucket_potential, elim_vars)
-                marginals[var.id] = marg_potential/np.sum(marg_potential)
+                if self.var_id_ind_map == None:
+                    marginals[var.id] = marg_potential/np.sum(marg_potential)
+                else:
+                    marginals[self.var_id_ind_map[var.id]] = marg_potential/np.sum(marg_potential)
         cdef double[:, :] out
-        out = np.asarray(marginals)
+        out = np.asarray(list(marginals), dtype=float)
         return out
     
     def getVarMarginals(self):
         return self._getVarMarginals()
-    
 
     def setEvidence(self, int id, int val):
         self.variables[id].setValue(val)
+
+    def getVars(self):
+        return self.variables
+
+

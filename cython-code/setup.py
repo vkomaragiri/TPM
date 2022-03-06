@@ -11,6 +11,7 @@ setup(name='TPM',
       Extension("BN", ["BN.pyx"], include_dirs=[numpy.get_include()], language="c++", extra_compile_args=["-std=c++14"]),
       Extension("MT", ["MT.pyx"], include_dirs=[numpy.get_include()], language="c++", extra_compile_args=["-std=c++14"]),
       Extension("CNode", ["CNode.pyx"], include_dirs=[numpy.get_include()], language="c++", extra_compile_args=["-std=c++14"]),
-      Extension("CN", ["CN.pyx"], include_dirs=[numpy.get_include()], language="c++", extra_compile_args=["-std=c++14"])
+      Extension("CN", ["CN.pyx"], include_dirs=[numpy.get_include()], language="c++", extra_compile_args=["-std=c++14"]),
+      Extension("MCN", ["MCN.pyx"], include_dirs=[numpy.get_include()], language="c++", extra_compile_args=["-std=c++14"])
       ])
 )
