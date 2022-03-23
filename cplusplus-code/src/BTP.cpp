@@ -183,7 +183,7 @@ void BTP::getPosteriorSampler(BN_Sampler &bns) {
     propagate();
     bns = BN_Sampler();
     bns.variables = variables;
-
+    bns.sampler_type = 1;
     for(int i = 0; i < order.size(); i++){
         int var = order[i];
         if(variables[var]->isEvid()){

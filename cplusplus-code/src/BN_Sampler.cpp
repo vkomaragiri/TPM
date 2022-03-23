@@ -19,6 +19,7 @@ BN_Sampler::BN_Sampler(CLT &clt, const unordered_map<int, int> &varid_ind) {
     for(int var : order){
         sampling_functions.emplace_back(clt.functions[var_func[var]]);
     }
+    sampler_type = 0;
 }
 
 void BN_Sampler::setEvidence(){
@@ -35,9 +36,18 @@ void BN_Sampler::generateSamples(int n, vector<vector<int>> &samples) {
     samples = vector<vector<int>> (n);
     for(int i = 0; i < n; i++) {
         samples[i] = vector<int> (variables.size());
-        for (auto &func: sampling_functions) {
-            func.generateSample();
-            samples[i][func.var->id] = func.var->t_val;
+        if(sampler_type == 0){
+            for (auto &func: sampling_functions) {
+                func.generateSample();
+                samples[i][func.var->id] = func.var->t_val;
+            }
+        }
+        else{
+            for(int j = sampling_functions.size()-1; j >= 0; j--){
+                SamplingFunction func = sampling_functions[j];
+                func.generateSample();
+                samples[i][func.var->id] = func.var->t_val;
+            }
         }
         for(auto &j: evidence_variables){
             if(variables[j]->isEvid()){
@@ -48,10 +58,19 @@ void BN_Sampler::generateSamples(int n, vector<vector<int>> &samples) {
 }
 
 void BN_Sampler::generateSample(vector<int> &sample){
-    for (auto &func: sampling_functions) {
+    if(sampler_type == 0){
+        for (auto &func: sampling_functions) {
             func.generateSample();
             sample[func.var->id] = func.var->t_val;
         }
+    }
+    else{
+        for(int j = sampling_functions.size()-1; j >= 0; j--){
+            SamplingFunction func = sampling_functions[j];
+            func.generateSample();
+            sample[func.var->id] = func.var->t_val;
+        }
+    }
     for(auto &j: evidence_variables){
         if(variables[j]->isEvid()){
             sample[variables[j]->id] = variables[j]->val;

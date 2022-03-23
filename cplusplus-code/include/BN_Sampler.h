@@ -16,6 +16,7 @@ public:
     vector<Variable*> variables;
     vector<int> evidence_variables;
     vector<SamplingFunction> sampling_functions;
+    bool sampler_type;
 
     BN_Sampler(CLT &clt, const unordered_map<int, int> &varid_ind = unordered_map<int, int>());
     BN_Sampler()=default;
