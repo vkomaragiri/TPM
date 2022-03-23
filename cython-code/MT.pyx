@@ -227,3 +227,20 @@ cdef class MT:
 
     def getVarMarginals(self):
         return self._getVarMarginals()
+
+    cdef int[:, :] _generatePriorSamples(self, int n):
+        cdef int i, j, k, nvars=len(self.variables)
+        cdef int[:, :] out 
+        self.prob_mixture = np.asarray(self.prob_mixture)/np.sum(self.prob_mixture)
+        cdef cnp.ndarray[int, ndim=1] temp = np.asarray(np.random.choice(a=self.ncomponents, size=(n), p=self.prob_mixture), dtype=np.int32)
+        cdef cnp.ndarray[int, ndim=2] samples = -1*np.ones((n, nvars), dtype=np.int32)
+        k = 0
+        for i in range(self.ncomponents):
+            j = np.sum(temp == i)
+            samples[k:k+j, :] = self.clts[i].generatePriorSamples(j)
+            k += j
+        out = samples
+        return out
+
+    def generatePriorSamples(self, int n):
+        return self._generatePriorSamples(n)

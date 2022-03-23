@@ -15,11 +15,15 @@ cdef class MCN:
     cdef int ncomponents
     cdef list variables
 
+    cdef bool set_evid
+
     def __init__(self):
         self.prob_mixture = np.array([])
         self.cns = []
         self.ncomponents = 0
         self.variables = []
+
+        self.set_evid = False
 
     cdef void _learnEM(self, cnp.ndarray[int, ndim=2] train, cnp.ndarray[int, ndim=2] valid, int ncomponents, int num_iter):
         cdef cnp.ndarray[int, ndim=1] dsize = np.max(train, axis = 0)+1
@@ -170,6 +174,8 @@ cdef class MCN:
     cdef double _getPE(self):
         cdef double pe = 0.0 
         cdef int i 
+        if self.set_evid == False:
+            self._instantiateEvidNetwork()
         for i in range(self.ncomponents):
             pe += self.prob_mixture[i]*self.cns[i].getPE()
         return pe 
@@ -180,19 +186,41 @@ cdef class MCN:
     cdef list _getVarMarginals(self):
         cdef int i, nvars, j 
         cdef double temp
+        if self.set_evid == False:
+            self._instantiateEvidNetwork()
         nvars = len(self.variables)
         marginals = []
         post_prob = np.zeros(self.ncomponents)
         for i in range(self.ncomponents):
+            print("IIIIIIII", i)
             post_prob[i] = self.cns[i].getPE()*self.prob_mixture[i]
             marginals.append(post_prob[i]*self.cns[i].getVarMarginals())
+            print(post_prob[i], np.asarray(self.cns[i].getVarMarginals()), marginals[i])
+            print("\n")
         post_prob /= np.sum(post_prob)
         marginals = np.sum(marginals, axis=0)
         for i in range(nvars):
             temp = np.sum(marginals[i])
+            #print(temp)
             marginals[i] /= temp
         return list(marginals)
 
     def getVarMarginals(self):
         return self._getVarMarginals()
 
+    cdef int[:, :] _generatePriorSamples(self, int n):
+        cdef int i, j, k, nvars=len(self.variables)
+        cdef int[:, :] out 
+        self.prob_mixture = np.asarray(self.prob_mixture)/np.sum(self.prob_mixture)
+        cdef cnp.ndarray[int, ndim=1] temp = np.asarray(np.random.choice(a=self.ncomponents, size=(n), p=self.prob_mixture), dtype=np.int32)
+        cdef cnp.ndarray[int, ndim=2] samples = -1*np.ones((n, nvars), dtype=np.int32)
+        k = 0
+        for i in range(self.ncomponents):
+            j = np.sum(temp == i)
+            samples[k:k+j, :] = self.cns[i].generatePriorSamples(j)
+            k += j
+        out = samples
+        return out
+
+    def generatePriorSamples(self, int n):
+        return self._generatePriorSamples(n)

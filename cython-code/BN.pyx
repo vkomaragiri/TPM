@@ -6,6 +6,7 @@ from scipy.sparse.csgraph import minimum_spanning_tree, depth_first_tree, connec
 from Variable import Variable
 from Function import Function
 from Util import getDirectedST, getDomainSize, setAddr, getAddr, getPairwiseProb, getProb, updateChowLiuCPT, computeMI, printVarVector, multiplyBucket, elimVarBucket
+from Util import getTopologicalOrder
 cimport cython 
 from libcpp cimport bool
 import sys
@@ -28,6 +29,7 @@ cdef class BN:
     cdef list buckets
     cdef int[:, :] messages
 
+    cdef list sampling_distributions 
 
     def __init__(self):
         self.variables = []
@@ -37,6 +39,8 @@ cdef class BN:
         self.pe = 0.0
         self.upward_pass = False 
         self.downward_pass = False
+
+        self.sampling_distributions = None
 
 
     cdef void _learnCLT(self, cnp.ndarray[int, ndim = 2] data, cnp.ndarray[double, ndim=1] weights, bool learn_struct, bool is_component, double laplace, cnp.ndarray[double, ndim=2] mi, list px, list pxy):
@@ -250,6 +254,7 @@ cdef class BN:
             self.order = -1*np.ones(nvars, dtype=np.int32)
         elif order_type == 2: #Min-fill
             self.order = -1*np.ones(nvars, dtype=np.int32)
+            
     
     def getOrder(self, long order_type):
         self._getOrder(order_type)
@@ -289,7 +294,7 @@ cdef class BN:
         edges = []
         self.initBTP()
         
-        cdef int i 
+        cdef int i, j
         if self.var_id_ind_map == None:
             for i in range(len(self.order)):
                 if len(self.buckets[i]) == 0:
@@ -305,10 +310,6 @@ cdef class BN:
                 func.setVars(marg_vars)
                 func.setPotential(marg_potential)
                 self.buckets[bucket_ind].append(func)
-            self.messages = np.array(edges, dtype=np.int32)
-            self.upward_pass = True 
-            self.pe = np.exp(self.pe)
-        
         else:
             for i in range(len(self.order)):
                 if len(self.buckets[i]) == 0:
@@ -324,12 +325,12 @@ cdef class BN:
                 func.setVars(marg_vars)
                 func.setPotential(marg_potential)
                 self.buckets[bucket_ind].append(func)
-            edges = np.array(edges, dtype=np.int32)
-            if edges.shape[0] == 0:
-                edges = np.zeros((1, 1), dtype=np.int32)
-            self.messages = edges
-            self.upward_pass = True 
-            self.pe = np.exp(self.pe)   
+        edges = np.array(edges, dtype=np.int32)
+        if len(edges) == 0:
+            edges = np.zeros((1, 1), dtype=np.int32)
+        self.messages = edges
+        self.upward_pass = True 
+        self.pe = np.exp(self.pe)   
         
     def performUpwardPass(self):
         self._performUpwardPass()
@@ -338,6 +339,11 @@ cdef class BN:
         if self.upward_pass == True:
             return self.pe 
         self.performUpwardPass()
+        #print("InCLT")
+        #for i in range(len(self.messages)):
+        #    if len(self.messages[i]) < 3:
+        #        print(np.array(self.messages[i]))
+
         return self.pe
         
     def getPE(self):
@@ -352,8 +358,9 @@ cdef class BN:
         cdef list msgs 
         msgs = list(self.messages)
         for i in range(len(self.messages)-1, -1, -1):
+            if self.messages[i].shape[0] == 1:
+                continue
             child, par, msg_ind = self.messages[i]
-            #print(child, par, msg_ind)
             parent_functions = []
             bucket = self.buckets[par]
             parent_vars = []
@@ -378,6 +385,7 @@ cdef class BN:
             self.buckets[child].append(func)
         self.downward_pass = True
         self.messages = np.asarray(msgs) 
+        #print("$$$$$")
 
     def performDownwardPass(self):
         self._performDownwardPass()
@@ -385,9 +393,10 @@ cdef class BN:
     cdef double[:, :] _getVarMarginals(self):
         if self.upward_pass == False:
             self._performUpwardPass()
+        #edges = np.array(self.messages)
+        #print(edges)
         if self.downward_pass == False:
             self._performDownwardPass() 
-        
         cdef int i, nvars, j 
         nvars = len(self.buckets)
         marginals = [np.zeros(self.variables[i].d, dtype=float) for i in range(nvars)]
@@ -424,5 +433,80 @@ cdef class BN:
 
     def getVars(self):
         return self.variables
+
+    cdef int[:, :] _generatePriorSamples(self, int n):
+        cdef int i, j, nvars=len(self.variables)
+        cdef int[:, :] out 
+        cdef cnp.ndarray[int, ndim=2] samples = -1*np.ones((n, nvars), dtype=np.int32)
+        cdef int[:] top_order
+        top_order = getTopologicalOrder(self.functions, self.var_id_ind_map)
+        if self.var_id_ind_map != None:
+            for i in range(nvars):
+                top_order[i] = self.variables[top_order[i]].id 
+        for i in range(n):
+            for j in range(nvars):
+                if self.var_id_ind_map == None:
+                    samples[i, :] = self.functions[top_order[j]].generateSample(samples[i, :], self.var_id_ind_map)
+                else:
+                    samples[i, :] = self.functions[self.var_id_ind_map[top_order[j]]].generateSample(samples[i, :], self.var_id_ind_map)
+        out = samples
+        return out
+
+    def generatePriorSamples(self, int n):
+        return self._generatePriorSamples(n)
+
+    cdef void _generatePosteriorSamplingFunctions(self):
+        if self.upward_pass == False:
+            self._performUpwardPass()
+        if self.downward_pass == False:
+            self._performDownwardPass() 
+        cdef int i, nvars, cpt_var_ind, j
+        cdef cnp.ndarray[double, ndim=1] temp_prob, temp
+        nvars = len(self.buckets)
+        self.sampling_distributions = [[] for i in range(nvars)]
+        
+        for i in range(nvars):
+            var = self.variables[self.order[i]]
+            func = Function()
+            if var.isEvid():
+                continue
+            elif len(self.buckets[i]) == 0:
+                temp_prob = (1.0/var.d)*np.ones(var.d)
+                func.setVars([var])
+                func.setPotential(temp_prob)
+                func.setCPTVar(0)
+            else:
+                bucket_vars, bucket_potential = multiplyBucket(self.buckets[i])
+                for j in range(len(bucket_vars)):
+                    if bucket_vars[j].id == var.id:
+                        cpt_var_ind = j
+                temp_prob = np.asarray(bucket_potential)/np.sum(bucket_potential)
+                func.setVars(bucket_vars)
+                func.setPotential(temp_prob)
+                func.setCPTVar(cpt_var_ind)
+            self.sampling_distributions[var.id] = func 
+
+    cdef int[:, :] _generatePosteriorSamples(self, int n):
+        if self.sampling_distributions == None:
+            self._generatePosteriorSamplingFunctions()
+        cdef int i, nvars, j
+        cdef cnp.ndarray[int, ndim=2] samples
+        cdef int[:, :] out 
+        nvars = len(self.buckets)
+        samples = -1*np.ones((n, nvars), dtype=np.int32)
+        for i in range(n):
+            for j in range(nvars-1, -1, -1):
+                var = self.variables[self.order[j]]   
+                if var.isEvid() == True:
+                    samples[i, var.id] = var.val 
+                    print(samples)
+                    continue
+                samples[i, :] = self.sampling_distributions[var.id].generateSample(samples[i, :], self.var_id_ind_map)
+        out = samples
+        return out
+
+
+    def generatePosteriorSamples(self, int n):
+        return self._generatePosteriorSamples(n)
 
 

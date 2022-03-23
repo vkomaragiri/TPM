@@ -322,23 +322,25 @@ cdef class CN:
                 if var.isEvid():
                     i = var.val
                     child = nd.children[i]
-                    self._performUpwardPassCNode(child)
                     if child == None:
                         temp += nd.child_weights[i]
                     else:
+                        self._performUpwardPassCNode(child)
                         temp += nd.child_weights[i]*child.val
                 else:
                     for i in range(len(nd.children)):
                         child = nd.children[i]
-                        self._performUpwardPassCNode(child)
                         if child == None:
                             temp += nd.child_weights[i]
                         else:
+                            self._performUpwardPassCNode(child)
                             temp += nd.child_weights[i]*child.val
                 nd.val = temp
             
             else:
+                #print("CLT Begin")
                 nd.val = nd.clt.getPE()
+                #print("CLT End")
         else:
             return
         
@@ -366,12 +368,19 @@ cdef class CN:
 
     cdef double[:, :] _getVarMarginalsCNode(self, object nd,  double[:, :] marginals):
         cdef int i, nvars, j, k
+        if nd == self.root:
+            print(np.asarray(nd.child_weights))
         if nd != None:
             out = np.asarray(marginals)
             if nd.node_type == 0:
                 if self.variables[nd.id].isEvid() == True:
                     i = self.variables[nd.id].val 
-                    out[nd.id] = nd.child_weights[i]*np.asarray(self._getVarMarginalsCNode(nd.children[i], out)[nd.id])
+                    temp_marginals = np.asarray(self._getVarMarginalsCNode(nd.children[i], out))
+                    if nd == self.root:
+                        print("root", temp_marginals)
+                    else:
+                        print("non-root", temp_marginals)
+                    out[nd.id] = nd.child_weights[i]*temp_marginals[nd.id]
                 else:
                     all_child_marginals = []
                     for i in range(len(nd.children)):
@@ -380,9 +389,7 @@ cdef class CN:
                         out = np.asarray(np.sum(all_child_marginals, axis=0), dtype=np.float64)
                     out[nd.id] = nd.child_weights
             else:
-                print("Hello")
                 clt_marginals = np.asarray(nd.clt.getVarMarginals())
-                print("Bye")
                 clt_vars = nd.clt.getVars()
                 for i in range(len(clt_vars)):
                     out[clt_vars[i].id] = clt_marginals[i]  
@@ -399,12 +406,38 @@ cdef class CN:
         if self.upward_pass == False:
             self._performUpwardPass()
         marginals = np.asarray(self._getVarMarginalsCNode(self.root, marginals))
-        print(type(marginals))
         for i in range(nvars):
             temp = np.sum(marginals[i])
             marginals[i] /= temp
+        
         return marginals
 
     def getVarMarginals(self):
         return self._getVarMarginals()
     
+    cdef int[:] _generatePriorSamplesCNode(self, object nd, cnp.ndarray[int, ndim=1] sample):
+        if nd == None:
+            return sample 
+        cdef int nchildren, val
+        cdef cnp.ndarray[int, ndim=1] nd_features
+        if nd.node_type == 0:
+            nchildren = len(nd.children)
+            val = np.asarray(np.random.choice(a=nchildren, size=(1), p=nd.child_weights), dtype=np.int32)
+            sample[nd.id] = val 
+            sample = np.asarray(self._generatePriorSamplesCNode(nd.children[val], sample), dtype=np.int32)
+        else:
+            nd_features = np.asarray(nd.features) 
+            sample[nd_features] = nd.clt.generatePriorSamples(1)[0, :]
+        return sample
+
+    cdef int[:, :] _generatePriorSamples(self, int n):
+        cdef int i, nvars=len(self.variables)
+        cdef int[:, :] out 
+        cdef cnp.ndarray[int, ndim=2] samples = -1*np.ones((n, nvars), dtype=np.int32)
+        for i in range(n):
+            samples[i, :] = self._generatePriorSamplesCNode(self.root, samples[i, :])
+        out = samples
+        return out
+
+    def generatePriorSamples(self, int n):
+        return self._generatePriorSamples(n)

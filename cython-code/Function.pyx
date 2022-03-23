@@ -62,11 +62,10 @@ cdef class Function:
                 self.variables[i].tval = self.variables[i].val 
             else:
                 non_evid_vars.append(self.variables[i])
-        out.setVars(non_evid_vars)
         if len(non_evid_vars) == nvars:
-            out.setPotential(np.asarray(self.potentials))
-            out.setCPTVar(self.cpt_var_ind)
+            return self
         else:
+            out.setVars(non_evid_vars)
             d = getDomainSize(non_evid_vars)
             temp = -1*np.ones(d)
             for i in range(d):
@@ -78,6 +77,31 @@ cdef class Function:
 
     def instantiateEvid(self):
         return self._instantiateEvid()
+
+    cdef int[:] _generateSample(self, cnp.ndarray[int, ndim=1] sample, dict var_id_ind_map):
+        cdef int i, nvars = len(self.variables), d
+        cpt_var = self.variables[self.cpt_var_ind]
+        d = cpt_var.d
+        for i in range(nvars):
+            if i != self.cpt_var_ind:
+                if var_id_ind_map == None:
+                    self.variables[i].tval = sample[self.variables[i].id]
+                else:
+                    self.variables[i].tval = sample[var_id_ind_map[self.variables[i].id]]
+        cdef cnp.ndarray[double, ndim=1] prob = np.zeros(d)
+        for i in range(d):
+            cpt_var.tval = i 
+            prob[i] = self.potentials[getAddr(self.variables)]
+        prob /= np.sum(prob)
+        if var_id_ind_map == None:
+            sample[cpt_var.id] = np.random.choice(a=d, size=(1), p=prob)
+        else:
+            sample[var_id_ind_map[cpt_var.id]] = np.random.choice(a=d, size=(1), p=prob)
+        return sample
+        
+
+    def generateSample(self, cnp.ndarray[int, ndim=1] sample, dict var_id_ind_map):
+        return self._generateSample(sample, var_id_ind_map)
 
 
 
