@@ -274,3 +274,28 @@ cdef list _elimVarBucket(list bucket_vars, double[:] bucket_potential, list elim
 @cython.wraparound(False)   # Deactivate negative indexing.
 def elimVarBucket(list bucket_vars, double[:] bucket_potential, list elim_vars):
     return _elimVarBucket(bucket_vars, bucket_potential, elim_vars)
+
+@cython.boundscheck(False)  # Deactivate bounds checking
+@cython.wraparound(False)   # Deactivate negative indexing.
+cdef int[:] _getTopologicalOrder(list functions, dict var_id_ind_map):
+    cdef int i, nfunctions = len(functions), j, cpt_var
+    cdef list func_vars
+    edges = []
+    for i in range(nfunctions):
+        func_vars = functions[i].getVars()
+        cpt_var = func_vars[functions[i].getCPTVar()].id
+        if var_id_ind_map == None:
+            edges.extend([(func_vars[j].id, cpt_var) for j in range(len(func_vars)) if func_vars[j].id != cpt_var]) 
+        else:
+            edges.extend([(var_id_ind_map[func_vars[j].id], var_id_ind_map[cpt_var]) for j in range(len(func_vars)) if func_vars[j].id != cpt_var])
+    g = Graph(
+        edges=edges,
+        directed=True,
+    )   
+    cdef int[:] result = np.asarray(g.topological_sorting(mode='out'), dtype=np.int32)
+    return result
+
+@cython.boundscheck(False)  # Deactivate bounds checking
+@cython.wraparound(False)   # Deactivate negative indexing.
+def getTopologicalOrder(list functions, dict var_id_ind_map):
+    return _getTopologicalOrder(functions, var_id_ind_map)

@@ -15,6 +15,7 @@ cdef class CNode:
     cdef public int[:] features
 
     cdef public double val
+    cdef public double[:] post_child_weights
 
     def __init__(self):
         self.id = -1
@@ -24,3 +25,4 @@ cdef class CNode:
         self.node_type = -1
         self.features = np.array([], dtype=np.int32)
         self.val = -1
+        self.post_child_weights = np.array([])

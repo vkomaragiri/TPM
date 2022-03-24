@@ -244,3 +244,24 @@ cdef class MT:
 
     def generatePriorSamples(self, int n):
         return self._generatePriorSamples(n)
+
+    cdef int[:, :] _generatePosteriorSamples(self, int n):
+        cdef int i, nvars, j, k
+        cdef int[:, :] out 
+        nvars = len(self.variables)
+        post_prob = np.zeros(self.ncomponents)
+        for i in range(self.ncomponents):
+            post_prob[i] = self.clts[i].getPE()*self.prob_mixture[i]
+        post_prob /= np.sum(post_prob)
+        cdef cnp.ndarray[int, ndim=1] temp = np.asarray(np.random.choice(a=self.ncomponents, size=(n), p=post_prob), dtype=np.int32)
+        cdef cnp.ndarray[int, ndim=2] samples = -1*np.ones((n, nvars), dtype=np.int32)
+        k = 0
+        for i in range(self.ncomponents):
+            j = np.sum(temp == i)
+            samples[k:k+j, :] = self.clts[i].generatePosteriorSamples(j)
+            k += j
+        out = samples
+        return out
+
+    def generatePosteriorSamples(self, int n):
+        return self._generatePosteriorSamples(n)

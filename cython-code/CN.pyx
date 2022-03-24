@@ -327,7 +327,10 @@ cdef class CN:
                     else:
                         self._performUpwardPassCNode(child)
                         temp += nd.child_weights[i]*child.val
+                    nd.post_child_weights = np.zeros(len(nd.children))
+                    nd.post_child_weights[i] = 1.0
                 else:
+                    nd.post_child_weights = nd.child_weights
                     for i in range(len(nd.children)):
                         child = nd.children[i]
                         if child == None:
@@ -335,6 +338,8 @@ cdef class CN:
                         else:
                             self._performUpwardPassCNode(child)
                             temp += nd.child_weights[i]*child.val
+                            nd.post_child_weights[i] *= child.val 
+                    nd.post_child_weights = nd.post_child_weights/np.sum(nd.post_child_weights)
                 nd.val = temp
             
             else:
@@ -409,7 +414,6 @@ cdef class CN:
         for i in range(nvars):
             temp = np.sum(marginals[i])
             marginals[i] /= temp
-        
         return marginals
 
     def getVarMarginals(self):
@@ -422,6 +426,7 @@ cdef class CN:
         cdef cnp.ndarray[int, ndim=1] nd_features
         if nd.node_type == 0:
             nchildren = len(nd.children)
+            print(nd.child_weights)
             val = np.asarray(np.random.choice(a=nchildren, size=(1), p=nd.child_weights), dtype=np.int32)
             sample[nd.id] = val 
             sample = np.asarray(self._generatePriorSamplesCNode(nd.children[val], sample), dtype=np.int32)
@@ -441,3 +446,36 @@ cdef class CN:
 
     def generatePriorSamples(self, int n):
         return self._generatePriorSamples(n)
+
+    cdef int[:] _generatePosteriorSamplesCNode(self, object nd, cnp.ndarray[int, ndim=1] sample):
+        if nd == None:
+            return sample 
+        cdef int nchildren, val
+        cdef cnp.ndarray[int, ndim=1] nd_features
+        if nd.node_type == 0:
+            if self.variables[nd.id].isEvid() == True:
+                val = self.variables[nd.id].val 
+            else:
+                nchildren = len(nd.children)
+                val = np.asarray(np.random.choice(a=nchildren, size=(1), p=nd.post_child_weights), dtype=np.int32)
+            sample[nd.id] = val 
+            sample = np.asarray(self._generatePosteriorSamplesCNode(nd.children[val], sample), dtype=np.int32)
+        else:
+            nd_features = np.asarray(nd.features) 
+            sample[nd_features] = nd.clt.generatePosteriorSamples(1)[0, :]
+        return sample
+
+    cdef int[:, :] _generatePosteriorSamples(self, int n):
+        cdef int i, nvars, j 
+        nvars = len(self.variables)
+        if self.upward_pass == False:
+            self._performUpwardPass()
+        cdef int[:, :] out 
+        cdef cnp.ndarray[int, ndim=2] samples = -1*np.ones((n, nvars), dtype=np.int32)
+        for i in range(n):
+            samples[i, :] = self._generatePosteriorSamplesCNode(self.root, samples[i, :])
+        out = samples
+        return out
+
+    def generatePosteriorSamples(self, int n):
+        return self._generatePosteriorSamples(n)

@@ -464,7 +464,6 @@ cdef class BN:
         cdef cnp.ndarray[double, ndim=1] temp_prob, temp
         nvars = len(self.buckets)
         self.sampling_distributions = [[] for i in range(nvars)]
-        
         for i in range(nvars):
             var = self.variables[self.order[i]]
             func = Function()
@@ -484,7 +483,7 @@ cdef class BN:
                 func.setVars(bucket_vars)
                 func.setPotential(temp_prob)
                 func.setCPTVar(cpt_var_ind)
-            self.sampling_distributions[var.id] = func 
+            self.sampling_distributions[self.order[i]] = func 
 
     cdef int[:, :] _generatePosteriorSamples(self, int n):
         if self.sampling_distributions == None:
@@ -494,14 +493,20 @@ cdef class BN:
         cdef int[:, :] out 
         nvars = len(self.buckets)
         samples = -1*np.ones((n, nvars), dtype=np.int32)
+        
         for i in range(n):
             for j in range(nvars-1, -1, -1):
                 var = self.variables[self.order[j]]   
                 if var.isEvid() == True:
-                    samples[i, var.id] = var.val 
-                    print(samples)
+                    if self.var_id_ind_map == None:
+                        samples[i, var.id] = var.val 
+                    else:
+                        samples[i, self.var_id_ind_map[var.id]] = var.val 
                     continue
-                samples[i, :] = self.sampling_distributions[var.id].generateSample(samples[i, :], self.var_id_ind_map)
+                if self.var_id_ind_map == None:
+                    samples[i, :] = self.sampling_distributions[var.id].generateSample(samples[i, :], self.var_id_ind_map)
+                else:
+                    samples[i, :] = self.sampling_distributions[self.var_id_ind_map[var.id]].generateSample(samples[i, :], self.var_id_ind_map)
         out = samples
         return out
 
